@@ -55,16 +55,7 @@ ChatHub est une application de chat moderne et complète permettant la communica
 ![alt text](<_- visual selection (7).png>)
 
 
-┌─────────────────┐    WebSocket    ┌─────────────────┐
-│   Client Web    │ ◄──────────────► │   Serveur C     │
-│   (JavaScript)  │                 │   (Multi-thread)│
-└─────────────────┘                 └─────────────────┘
-         │                                   │
-         │                                   │
-    ┌─────────┐                         ┌─────────┐
-    │ Browser │                         │ Sockets │
-    │   UI    │                         │ Manager │
-    └─────────┘                         └─────────┘
+![alt text](image.png)
 
 
 ### Composants
@@ -202,17 +193,7 @@ Puis accédez à `http://localhost:8000` dans votre navigateur.
 
 ## Structure du projet
 
-chat-application/
-├── server/
-│   ├── server.c          # Serveur principal en C
-│   ├── Makefile          # Configuration de compilation
-│   ├── websocket-proxy.js # Proxy WebSocket pour le client web
-│   └── package.json      # Dépendances Node.js
-└── client/
-    ├── index.html        # Interface utilisateur HTML
-    ├── style.css         # Styles CSS
-    ├── script.js         # Logique client JavaScript
-
+![alt text](image-1.png)
 
 ## Fonctionnement technique
 
