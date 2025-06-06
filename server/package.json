@@ -1,0 +1,12 @@
+{
+  "name": "chat-websocket-proxy",
+  "version": "1.0.0",
+  "description": "Proxy WebSocket pour serveur de chat C",
+  "main": "websocket-proxy.js",
+  "scripts": {
+    "start": "node websocket-proxy.js"
+  },
+  "dependencies": {
+    "ws": "^8.14.2"
+  }
+}
