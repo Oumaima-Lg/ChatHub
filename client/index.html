@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Client</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div class="container">
         <!-- Écran de connexion -->
@@ -13,18 +15,19 @@
             <div class="login-form">
                 <h1>Rejoindre le Chat</h1>
                 <input type="text" id="usernameInput" placeholder="Entrez votre pseudonyme" maxlength="20">
-                <input type="text" id="serverInput" placeholder="Adresse du serveur (localhost:3000)" value="localhost:3000">
-                
+                <input type="text" id="serverInput" placeholder="Adresse du serveur (localhost:3000)"
+                    value="localhost:3000">
+
                 <div class="sound-settings">
                     <label class="sound-toggle">
                         <input type="checkbox" id="soundEnabled" checked>
                         <span>Sons de notification activés</span>
                     </label>
                 </div>
-                
+
                 <button id="connectBtn">Se connecter</button>
                 <div id="connectionStatus"></div>
-                
+
                 <div class="instructions">
                     <h3>Instructions :</h3>
                     <ol>
@@ -40,8 +43,18 @@
 
         <!-- Interface de chat -->
         <div id="chatScreen" class="screen hidden">
-            <div class="chat-header">
+            <!-- <div class="chat-header">
                 <h2>Chat Room</h2>
+                <div class="user-info">
+                    <label class="sound-toggle-chat">
+                        <input type="checkbox" id="soundEnabledChat" checked>
+                        🔊
+                    </label>
+                    <span id="currentUser"></span>
+                    <button id="disconnectBtn">Déconnexion</button>
+                </div> -->
+            <div class="chat-header">
+                <h2>Chat Room - <span id="currentRoom">general</span></h2>
                 <div class="user-info">
                     <label class="sound-toggle-chat">
                         <input type="checkbox" id="soundEnabledChat" checked>
@@ -51,28 +64,38 @@
                     <button id="disconnectBtn">Déconnexion</button>
                 </div>
             </div>
+        </div>
 
-            <div class="chat-container">
-                <!-- Liste des utilisateurs connectés -->
-                <div class="users-panel">
-                    <h3>Utilisateurs connectés (<span id="userCount">0</span>)</h3>
-                    <ul id="usersList"></ul>
-                    <button id="refreshUsers" style="margin-top: 10px; padding: 5px 10px; background: #667eea; color: white; border: none; border-radius: 3px; cursor: pointer;">Actualiser</button>
+        <div class="chat-container">
+            <!-- Liste des utilisateurs connectés -->
+            <div class="users-panel">
+                <div class="room-controls">
+                    <h3>Contrôles Room</h3>
+                    <button id="createRoomBtn" class="room-btn">Créer Room</button>
+                    <button id="joinRoomBtn" class="room-btn">Rejoindre Room</button>
+                    <button id="roomListBtn" class="room-btn">Liste Rooms</button>
                 </div>
 
-                <!-- Zone de messages -->
-                <div class="messages-panel">
-                    <div id="messagesContainer"></div>
-                    
-                    <div class="message-input">
-                        <input type="text" id="messageInput" placeholder="Tapez votre message..." maxlength="500">
-                        <button id="sendBtn">Envoyer</button>
-                    </div>
+                <h3>Utilisateurs connectés (<span id="userCount">0</span>)</h3>
+                <ul id="usersList"></ul>
+                <button id="refreshUsers"
+                    style="margin-top: 10px; padding: 5px 10px; background: #667eea; color: white; border: none; border-radius: 3px; cursor: pointer;">Actualiser</button>
+            </div>
+
+            <!-- Zone de messages -->
+            <div class="messages-panel">
+                <div id="messagesContainer"></div>
+
+                <div class="message-input">
+                    <input type="text" id="messageInput" placeholder="Tapez votre message..." maxlength="500">
+                    <button id="sendBtn">Envoyer</button>
                 </div>
             </div>
         </div>
     </div>
+    </div>
 
     <script src="script.js"></script>
 </body>
+
 </html>

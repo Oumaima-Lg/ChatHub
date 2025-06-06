@@ -7,6 +7,9 @@ class ChatClient {
     this.maxReconnectAttempts = 5
     this.manualDisconnect = false // Nouveau flag pour déconnexion manuelle
 
+    this.currentRoom = "general"
+    this.availableRooms = []
+
     // Sons de notification
     this.sendSound = null
     this.receiveSound = null
@@ -19,7 +22,7 @@ class ChatClient {
   initializeSounds() {
     // Créer les sons de notification avec l'API Web Audio
     this.audioContext = null
-    
+
     // Initialiser le contexte audio au premier clic utilisateur
     document.addEventListener('click', () => {
       if (!this.audioContext) {
@@ -34,16 +37,16 @@ class ChatClient {
     this.sendSound = () => {
       const oscillator = this.audioContext.createOscillator()
       const gainNode = this.audioContext.createGain()
-      
+
       oscillator.connect(gainNode)
       gainNode.connect(this.audioContext.destination)
-      
+
       oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime)
       oscillator.frequency.exponentialRampToValueAtTime(600, this.audioContext.currentTime + 0.1)
-      
+
       gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime)
       gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.15)
-      
+
       oscillator.start(this.audioContext.currentTime)
       oscillator.stop(this.audioContext.currentTime + 0.15)
     }
@@ -52,16 +55,16 @@ class ChatClient {
     this.receiveSound = () => {
       const oscillator = this.audioContext.createOscillator()
       const gainNode = this.audioContext.createGain()
-      
+
       oscillator.connect(gainNode)
       gainNode.connect(this.audioContext.destination)
-      
+
       oscillator.frequency.setValueAtTime(400, this.audioContext.currentTime)
       oscillator.frequency.exponentialRampToValueAtTime(500, this.audioContext.currentTime + 0.2)
-      
+
       gainNode.gain.setValueAtTime(0.2, this.audioContext.currentTime)
       gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3)
-      
+
       oscillator.start(this.audioContext.currentTime)
       oscillator.stop(this.audioContext.currentTime + 0.3)
     }
@@ -71,10 +74,10 @@ class ChatClient {
     // Vérifier si les sons sont activés
     const soundEnabled = this.soundEnabled?.checked ?? true
     const soundEnabledChat = this.soundEnabledChat?.checked ?? true
-    
+
     if (!soundEnabled && !soundEnabledChat) return
     if (!this.audioContext) return
-    
+
     try {
       if (soundType === 'send' && this.sendSound) {
         this.sendSound()
@@ -132,10 +135,31 @@ class ChatClient {
       this.refreshBtn.addEventListener("click", () => this.requestUserList())
     }
 
+
+
+
+    const createRoomBtn = document.getElementById("createRoomBtn")
+    const joinRoomBtn = document.getElementById("joinRoomBtn")
+    const roomListBtn = document.getElementById("roomListBtn")
+    
+    if (createRoomBtn) {
+        createRoomBtn.addEventListener("click", () => this.createRoom())
+    }
+    
+    if (joinRoomBtn) {
+        joinRoomBtn.addEventListener("click", () => this.joinRoom())
+    }
+    
+    if (roomListBtn) {
+        roomListBtn.addEventListener("click", () => this.requestRoomList())
+    }
+
+    
+
     // Contrôles sonores
     this.soundEnabled = document.getElementById("soundEnabled")
     this.soundEnabledChat = document.getElementById("soundEnabledChat")
-    
+
     // Synchroniser les deux checkboxes
     if (this.soundEnabled) {
       this.soundEnabled.addEventListener("change", (e) => {
@@ -144,7 +168,7 @@ class ChatClient {
         }
       })
     }
-    
+
     if (this.soundEnabledChat) {
       this.soundEnabledChat.addEventListener("change", (e) => {
         if (this.soundEnabled) {
@@ -275,7 +299,7 @@ class ChatClient {
 
       // Afficher immédiatement notre propre message
       this.addMessage("own", this.username, message)
-      
+
       // Jouer le son d'envoi
       this.playSound('send')
     }
@@ -328,6 +352,25 @@ class ChatClient {
         this.socket.close()
       }
     }
+
+
+    if (data.startsWith("ROOMS:")) {
+        const roomsData = data.substring(6)
+        const rooms = roomsData ? roomsData.split(",").filter(r => r.trim()) : []
+        this.updateRoomsList(rooms)
+    } else if (data.startsWith("ROOM_CREATED:")) {
+        const roomName = data.substring(13)
+        this.currentRoom = roomName
+        this.addMessage("system", "", `Room '${roomName}' créée avec succès`)
+        this.updateRoomDisplay()
+    } else if (data.startsWith("ROOM_JOINED:")) {
+        const roomName = data.substring(12)
+        this.currentRoom = roomName
+        this.addMessage("system", "", `Vous avez rejoint la room '${roomName}'`)
+        this.updateRoomDisplay()
+        this.messagesContainer.innerHTML = "" // Vider les anciens messages
+    }
+
   }
 
   addMessage(type, sender, content) {
@@ -406,6 +449,55 @@ class ChatClient {
     const div = document.createElement("div")
     div.textContent = text
     return div.innerHTML
+  }
+
+
+  createRoom() {
+    const roomName = prompt("Nom de la room :")
+    if (!roomName || roomName.trim() === "") return
+
+    const isPrivate = confirm("Room privée ?")
+    let password = ""
+
+    if (isPrivate) {
+      password = prompt("Mot de passe de la room :")
+      if (!password) return
+    }
+
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.socket.send(`CREATE_ROOM:${roomName.trim()}:${password}`)
+    }
+  }
+
+  joinRoom() {
+    const roomName = prompt("Nom de la room à rejoindre :")
+    if (!roomName || roomName.trim() === "") return
+
+    const password = prompt("Mot de passe (laisser vide si room publique) :")
+
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.socket.send(`JOIN_ROOM:${roomName.trim()}:${password || ""}`)
+    }
+  }
+
+  requestRoomList() {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.socket.send("ROOMS")
+    }
+  }
+
+  updateRoomsList(rooms) {
+    this.availableRooms = rooms
+    // Mettre à jour l'affichage si nécessaire
+    console.log("Rooms disponibles:", rooms)
+  }
+
+  updateRoomDisplay() {
+    // Mettre à jour l'affichage de la room actuelle
+    const roomDisplay = document.getElementById("currentRoom")
+    if (roomDisplay) {
+      roomDisplay.textContent = this.currentRoom
+    }
   }
 }
 
