@@ -5,10 +5,12 @@ class ChatClient {
     this.isConnected = false
     this.reconnectAttempts = 0
     this.maxReconnectAttempts = 5
-    this.manualDisconnect = false // Nouveau flag pour déconnexion manuelle
+    this.manualDisconnect = false
 
     this.currentRoom = "general"
+    this.currentRoomType = "public"
     this.availableRooms = []
+    this.roomUsers = {} // Stocke les utilisateurs par salle
 
     // Sons de notification
     this.sendSound = null
@@ -20,16 +22,18 @@ class ChatClient {
   }
 
   initializeSounds() {
-    // Créer les sons de notification avec l'API Web Audio
     this.audioContext = null
 
-    // Initialiser le contexte audio au premier clic utilisateur
-    document.addEventListener('click', () => {
-      if (!this.audioContext) {
-        this.audioContext = new (window.AudioContext || window.webkitAudioContext)()
-        this.createNotificationSounds()
-      }
-    }, { once: true })
+    document.addEventListener(
+      "click",
+      () => {
+        if (!this.audioContext) {
+          this.audioContext = new (window.AudioContext || window.webkitAudioContext)()
+          this.createNotificationSounds()
+        }
+      },
+      { once: true },
+    )
   }
 
   createNotificationSounds() {
@@ -71,7 +75,6 @@ class ChatClient {
   }
 
   playSound(soundType) {
-    // Vérifier si les sons sont activés
     const soundEnabled = this.soundEnabled?.checked ?? true
     const soundEnabledChat = this.soundEnabledChat?.checked ?? true
 
@@ -79,19 +82,20 @@ class ChatClient {
     if (!this.audioContext) return
 
     try {
-      if (soundType === 'send' && this.sendSound) {
+      if (soundType === "send" && this.sendSound) {
         this.sendSound()
-      } else if (soundType === 'receive' && this.receiveSound) {
+      } else if (soundType === "receive" && this.receiveSound) {
         this.receiveSound()
       }
     } catch (error) {
-      console.warn('Erreur lors de la lecture du son:', error)
+      console.warn("Erreur lors de la lecture du son:", error)
     }
   }
 
   initializeElements() {
     // Écrans
     this.loginScreen = document.getElementById("loginScreen")
+    this.roomScreen = document.getElementById("roomScreen")
     this.chatScreen = document.getElementById("chatScreen")
 
     // Éléments de connexion
@@ -100,15 +104,36 @@ class ChatClient {
     this.connectBtn = document.getElementById("connectBtn")
     this.connectionStatus = document.getElementById("connectionStatus")
 
+    // Éléments de sélection de salle
+    this.welcomeUsername = document.getElementById("welcomeUsername")
+    this.joinPublicBtn = document.getElementById("joinPublicBtn")
+    this.roomNameInput = document.getElementById("roomNameInput")
+    this.roomPasswordInput = document.getElementById("roomPasswordInput")
+    this.createRoomBtn = document.getElementById("createRoomBtn")
+    this.joinRoomNameInput = document.getElementById("joinRoomNameInput")
+    this.joinRoomPasswordInput = document.getElementById("joinRoomPasswordInput")
+    this.joinPrivateBtn = document.getElementById("joinPrivateBtn")
+    this.roomsList = document.getElementById("roomsList")
+    this.refreshRoomsBtn = document.getElementById("refreshRoomsBtn")
+    this.backToLoginBtn = document.getElementById("backToLoginBtn")
+
     // Éléments de chat
+    this.roomTitle = document.getElementById("roomTitle")
+    this.roomType = document.getElementById("roomType")
+    this.onlineCount = document.getElementById("onlineCount")
     this.currentUser = document.getElementById("currentUser")
+    this.leaveRoomBtn = document.getElementById("leaveRoomBtn")
     this.disconnectBtn = document.getElementById("disconnectBtn")
     this.usersList = document.getElementById("usersList")
     this.userCount = document.getElementById("userCount")
     this.messagesContainer = document.getElementById("messagesContainer")
     this.messageInput = document.getElementById("messageInput")
     this.sendBtn = document.getElementById("sendBtn")
-    this.refreshBtn = document.getElementById("refreshUsers")
+    this.refreshUsers = document.getElementById("refreshUsers")
+
+    // Contrôles sonores
+    this.soundEnabled = document.getElementById("soundEnabled")
+    this.soundEnabledChat = document.getElementById("soundEnabledChat")
   }
 
   attachEventListeners() {
@@ -121,46 +146,31 @@ class ChatClient {
       if (e.key === "Enter") this.connect()
     })
 
-    // Déconnexion
-    this.disconnectBtn.addEventListener("click", () => this.disconnect())
+    // Sélection de salle
+    this.joinPublicBtn.addEventListener("click", () => this.joinPublicRoom())
+    this.createRoomBtn.addEventListener("click", () => this.createPrivateRoom())
+    this.joinPrivateBtn.addEventListener("click", () => this.joinPrivateRoom())
+    this.refreshRoomsBtn.addEventListener("click", () => this.requestRoomList())
+    this.backToLoginBtn.addEventListener("click", () => this.backToLogin())
 
-    // Envoi de messages
+    // Gestion des touches Enter dans les champs de salle
+    this.roomPasswordInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") this.createPrivateRoom()
+    })
+    this.joinRoomPasswordInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") this.joinPrivateRoom()
+    })
+
+    // Chat
+    this.leaveRoomBtn.addEventListener("click", () => this.leaveRoom())
+    this.disconnectBtn.addEventListener("click", () => this.disconnect())
     this.sendBtn.addEventListener("click", () => this.sendMessage())
     this.messageInput.addEventListener("keypress", (e) => {
       if (e.key === "Enter") this.sendMessage()
     })
-
-    // Actualiser la liste des utilisateurs
-    if (this.refreshBtn) {
-      this.refreshBtn.addEventListener("click", () => this.requestUserList())
-    }
-
-
-
-
-    const createRoomBtn = document.getElementById("createRoomBtn")
-    const joinRoomBtn = document.getElementById("joinRoomBtn")
-    const roomListBtn = document.getElementById("roomListBtn")
-    
-    if (createRoomBtn) {
-        createRoomBtn.addEventListener("click", () => this.createRoom())
-    }
-    
-    if (joinRoomBtn) {
-        joinRoomBtn.addEventListener("click", () => this.joinRoom())
-    }
-    
-    if (roomListBtn) {
-        roomListBtn.addEventListener("click", () => this.requestRoomList())
-    }
-
-    
+    this.refreshUsers.addEventListener("click", () => this.requestRoomUserList())
 
     // Contrôles sonores
-    this.soundEnabled = document.getElementById("soundEnabled")
-    this.soundEnabledChat = document.getElementById("soundEnabledChat")
-
-    // Synchroniser les deux checkboxes
     if (this.soundEnabled) {
       this.soundEnabled.addEventListener("change", (e) => {
         if (this.soundEnabledChat) {
@@ -201,7 +211,7 @@ class ChatClient {
 
     this.username = username
     this.connectBtn.disabled = true
-    this.manualDisconnect = false // Réinitialiser le flag lors d'une nouvelle connexion
+    this.manualDisconnect = false
     this.showStatus("Connexion en cours...", "connecting")
 
     try {
@@ -213,12 +223,10 @@ class ChatClient {
   }
 
   connectToServer(server) {
-    // Connexion WebSocket réelle au proxy
     this.socket = new WebSocket(`ws://${server}`)
 
     this.socket.onopen = () => {
       console.log("Connexion WebSocket établie")
-      // Envoyer le pseudonyme au serveur
       this.socket.send(this.username)
     }
 
@@ -238,9 +246,8 @@ class ChatClient {
       this.connectBtn.disabled = false
     }
 
-    // Timeout de connexion
     setTimeout(() => {
-      if (this.socket.readyState === WebSocket.CONNECTING) {
+      if (this.socket && this.socket.readyState === WebSocket.CONNECTING) {
         this.socket.close()
         this.showStatus("Timeout de connexion", "error")
         this.connectBtn.disabled = false
@@ -249,7 +256,7 @@ class ChatClient {
   }
 
   disconnect() {
-    this.manualDisconnect = true // Marquer comme déconnexion manuelle
+    this.manualDisconnect = true
     if (this.socket) {
       this.socket.close()
     }
@@ -261,7 +268,6 @@ class ChatClient {
   handleDisconnection() {
     this.isConnected = false
 
-    // Ne pas reconnecter si c'est une déconnexion manuelle
     if (this.manualDisconnect) {
       console.log("Déconnexion manuelle - pas de reconnexion automatique")
       return
@@ -281,6 +287,76 @@ class ChatClient {
     }
   }
 
+  // Méthodes pour la gestion des salles
+  joinPublicRoom() {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.socket.send("JOIN_ROOM:general:")
+      this.currentRoomType = "public"
+    }
+  }
+
+  createPrivateRoom() {
+    const roomName = this.roomNameInput.value.trim()
+    const password = this.roomPasswordInput.value.trim()
+
+    if (!roomName) {
+      alert("Veuillez entrer un nom de salle")
+      return
+    }
+
+    if (!password) {
+      alert("Veuillez entrer un mot de passe pour la salle privée")
+      return
+    }
+
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.socket.send(`CREATE_ROOM:${roomName}:${password}`)
+      this.currentRoomType = "private"
+    }
+  }
+
+  joinPrivateRoom() {
+    const roomName = this.joinRoomNameInput.value.trim()
+    const password = this.joinRoomPasswordInput.value.trim()
+
+    if (!roomName) {
+      alert("Veuillez entrer le nom de la salle")
+      return
+    }
+
+    if (!password) {
+      alert("Veuillez entrer le mot de passe de la salle")
+      return
+    }
+
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.socket.send(`JOIN_ROOM:${roomName}:${password}`)
+      this.currentRoomType = "private"
+    }
+  }
+
+  leaveRoom() {
+    // Envoyer une commande pour quitter la salle actuelle
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.socket.send(`LEAVE_ROOM:${this.currentRoom}`)
+    }
+
+    // Retourner à l'écran de sélection de salle
+    this.switchToRoomSelection()
+    this.clearRoomInputs()
+  }
+
+  backToLogin() {
+    this.disconnect()
+  }
+
+  clearRoomInputs() {
+    this.roomNameInput.value = ""
+    this.roomPasswordInput.value = ""
+    this.joinRoomNameInput.value = ""
+    this.joinRoomPasswordInput.value = ""
+  }
+
   sendMessage() {
     const message = this.messageInput.value.trim()
 
@@ -293,15 +369,13 @@ class ChatClient {
       return
     }
 
-    // Envoyer le message au serveur
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(message)
+      // Envoyer le message avec le préfixe de la salle actuelle
+      this.socket.send(`ROOM_MSG:${this.currentRoom}:${message}`)
 
       // Afficher immédiatement notre propre message
       this.addMessage("own", this.username, message)
-
-      // Jouer le son d'envoi
-      this.playSound('send')
+      this.playSound("send")
     }
 
     this.messageInput.value = ""
@@ -314,32 +388,71 @@ class ChatClient {
     }
   }
 
+  requestRoomUserList() {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      console.log(`Demande de liste des utilisateurs pour la salle: ${this.currentRoom}`)
+      this.socket.send(`ROOM_USERS:${this.currentRoom}`)
+    }
+  }
+
+  requestRoomList() {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.socket.send("ROOMS")
+    }
+  }
+
   handleMessage(data) {
     console.log("Traitement du message:", data)
 
-    // Parser les différents types de messages du serveur C
     if (data.startsWith("CLIENTS:")) {
       const clientsData = data.substring(8)
       const clients = clientsData ? clientsData.split(",").filter((c) => c.trim()) : []
-      this.updateUsersList(clients)
 
-      // Si c'est la première fois qu'on reçoit la liste, on est connecté
+      // Mise à jour de la liste globale des utilisateurs (pour l'écran de sélection)
       if (!this.isConnected) {
         this.isConnected = true
         this.reconnectAttempts = 0
         this.showStatus("Connecté avec succès!", "success")
-        this.switchToChat()
+        this.switchToRoomSelection()
+      }
+    } else if (data.startsWith("ROOM_USERS:")) {
+      // Nouveau format pour les utilisateurs d'une salle spécifique
+      const parts = data.substring(11).split(":")
+      const roomName = parts[0]
+      const usersData = parts[1]
+      const users = usersData ? usersData.split(",").filter((u) => u.trim()) : []
+
+      console.log(`Liste des utilisateurs reçue pour la salle ${roomName}:`, users)
+
+      // Mettre à jour la liste des utilisateurs pour cette salle
+      this.roomUsers[roomName] = users
+
+      // Si c'est la salle actuelle, mettre à jour l'affichage
+      if (roomName === this.currentRoom) {
+        this.updateUsersList(users)
       }
     } else if (data.startsWith("MESSAGE:")) {
       const parts = data.substring(8).split(":")
       const sender = parts[0]
       const message = parts.slice(1).join(":")
 
-      // Ne pas afficher nos propres messages (ils sont déjà affichés localement)
       if (sender !== this.username) {
         this.addMessage("other", sender, message)
-        // Jouer le son de réception pour les messages des autres
-        this.playSound('receive')
+        this.playSound("receive")
+      }
+    } else if (data.startsWith("ROOM_MSG:")) {
+      // Nouveau format pour les messages de salle
+      const parts = data.substring(9).split(":")
+      const roomName = parts[0]
+      const sender = parts[1]
+      const message = parts.slice(2).join(":")
+
+      console.log(`Message reçu pour la salle ${roomName} de ${sender}: ${message}`)
+
+      // Vérifier si le message est pour la salle actuelle
+      if (roomName === this.currentRoom && sender !== this.username) {
+        this.addMessage("other", sender, message)
+        this.playSound("receive")
       }
     } else if (data.startsWith("SYSTEM:")) {
       const message = data.substring(7)
@@ -347,30 +460,47 @@ class ChatClient {
     } else if (data.startsWith("ERROR:")) {
       const error = data.substring(6)
       this.showStatus(error, "error")
-      this.connectBtn.disabled = false
-      if (this.socket) {
-        this.socket.close()
+
+      if (error.includes("Pseudonyme déjà utilisé")) {
+        this.connectBtn.disabled = false
+        if (this.socket) {
+          this.socket.close()
+        }
+      }
+    } else if (data.startsWith("ROOMS:")) {
+      const roomsData = data.substring(6)
+      const rooms = roomsData ? roomsData.split(",").filter((r) => r.trim()) : []
+      this.updateRoomsList(rooms)
+    } else if (data.startsWith("ROOM_CREATED:")) {
+      const roomName = data.substring(13)
+      this.currentRoom = roomName
+      this.switchToChat()
+      this.addMessage("system", "", `Salle '${roomName}' créée avec succès`)
+      this.updateRoomDisplay()
+      // Demander la liste des utilisateurs après un court délai
+      setTimeout(() => {
+        this.requestRoomUserList()
+      }, 500)
+    } else if (data.startsWith("ROOM_JOINED:")) {
+      const roomName = data.substring(12)
+      this.currentRoom = roomName
+      this.switchToChat()
+      this.messagesContainer.innerHTML = "" // Vider les messages précédents
+      this.addMessage("system", "", `Vous avez rejoint la salle '${roomName}'`)
+      this.updateRoomDisplay()
+
+      // CORRECTION PRINCIPALE : Demander la liste des utilisateurs après avoir rejoint la salle
+      console.log(`Salle rejointe: ${roomName}, demande de la liste des utilisateurs...`)
+      setTimeout(() => {
+        this.requestRoomUserList()
+      }, 500) // Délai pour s'assurer que le serveur a fini de traiter l'ajout
+    } else if (data.startsWith("ROOM_LEFT:")) {
+      const roomName = data.substring(10)
+      if (roomName === this.currentRoom) {
+        this.currentRoom = "general" // Revenir à la salle générale par défaut
+        this.switchToRoomSelection()
       }
     }
-
-
-    if (data.startsWith("ROOMS:")) {
-        const roomsData = data.substring(6)
-        const rooms = roomsData ? roomsData.split(",").filter(r => r.trim()) : []
-        this.updateRoomsList(rooms)
-    } else if (data.startsWith("ROOM_CREATED:")) {
-        const roomName = data.substring(13)
-        this.currentRoom = roomName
-        this.addMessage("system", "", `Room '${roomName}' créée avec succès`)
-        this.updateRoomDisplay()
-    } else if (data.startsWith("ROOM_JOINED:")) {
-        const roomName = data.substring(12)
-        this.currentRoom = roomName
-        this.addMessage("system", "", `Vous avez rejoint la room '${roomName}'`)
-        this.updateRoomDisplay()
-        this.messagesContainer.innerHTML = "" // Vider les anciens messages
-    }
-
   }
 
   addMessage(type, sender, content) {
@@ -402,35 +532,92 @@ class ChatClient {
   }
 
   updateUsersList(users) {
+    console.log("Mise à jour de la liste des utilisateurs:", users)
     this.usersList.innerHTML = ""
     this.userCount.textContent = users.length
+    this.onlineCount.textContent = `${users.length} en ligne`
 
     users.forEach((user) => {
       const li = document.createElement("li")
       li.textContent = user
       if (user === this.username) {
-        li.style.fontWeight = "bold"
-        li.style.color = "#667eea"
+        li.classList.add("current-user")
         li.title = "Vous"
       }
       this.usersList.appendChild(li)
     })
   }
 
-  switchToChat() {
-    this.loginScreen.classList.add("hidden")
-    this.chatScreen.classList.remove("hidden")
-    this.currentUser.textContent = this.username
-    this.messageInput.focus()
+  updateRoomsList(rooms) {
+    this.availableRooms = rooms
+
+    if (rooms.length === 0) {
+      this.roomsList.innerHTML = '<div class="no-rooms">Aucune salle disponible</div>'
+      return
+    }
+
+    let html = ""
+    rooms.forEach((room) => {
+      const isPrivate = room.includes("(private)")
+      const roomName = room.replace("(private)", "").trim()
+
+      html += `
+        <div class="room-item">
+          <div class="room-item-info">
+            <div class="room-item-name">${roomName} ${isPrivate ? "🔒" : "🌍"}</div>
+            <div class="room-item-users">${isPrivate ? "Privée" : "Publique"}</div>
+          </div>
+          <button class="room-item-btn" onclick="chatClient.quickJoinRoom('${roomName}', ${isPrivate})">
+            Rejoindre
+          </button>
+        </div>
+      `
+    })
+
+    this.roomsList.innerHTML = html
+  }
+
+  quickJoinRoom(roomName, isPrivate) {
+    if (isPrivate) {
+      const password = prompt(`Mot de passe pour la salle "${roomName}" :`)
+      if (password) {
+        this.socket.send(`JOIN_ROOM:${roomName}:${password}`)
+        this.currentRoomType = "private"
+      }
+    } else {
+      this.socket.send(`JOIN_ROOM:${roomName}:`)
+      this.currentRoomType = "public"
+    }
+  }
+
+  updateRoomDisplay() {
+    this.roomTitle.textContent = this.currentRoom === "general" ? "Salle Générale" : this.currentRoom
+    this.roomType.textContent = this.currentRoomType === "private" ? "🔒 Privée" : "🌍 Publique"
   }
 
   switchToLogin() {
-    this.chatScreen.classList.add("hidden")
     this.loginScreen.classList.remove("hidden")
+    this.roomScreen.classList.add("hidden")
+    this.chatScreen.classList.add("hidden")
     this.connectBtn.disabled = false
-    this.messagesContainer.innerHTML = ""
-    this.usersList.innerHTML = ""
-    this.userCount.textContent = "0"
+    this.clearRoomInputs()
+  }
+
+  switchToRoomSelection() {
+    this.loginScreen.classList.add("hidden")
+    this.roomScreen.classList.remove("hidden")
+    this.chatScreen.classList.add("hidden")
+    this.welcomeUsername.textContent = this.username
+    this.requestRoomList()
+  }
+
+  switchToChat() {
+    this.loginScreen.classList.add("hidden")
+    this.roomScreen.classList.add("hidden")
+    this.chatScreen.classList.remove("hidden")
+    this.currentUser.textContent = this.username
+    this.messageInput.focus()
+    this.updateRoomDisplay()
   }
 
   showStatus(message, type) {
@@ -450,58 +637,10 @@ class ChatClient {
     div.textContent = text
     return div.innerHTML
   }
-
-
-  createRoom() {
-    const roomName = prompt("Nom de la room :")
-    if (!roomName || roomName.trim() === "") return
-
-    const isPrivate = confirm("Room privée ?")
-    let password = ""
-
-    if (isPrivate) {
-      password = prompt("Mot de passe de la room :")
-      if (!password) return
-    }
-
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(`CREATE_ROOM:${roomName.trim()}:${password}`)
-    }
-  }
-
-  joinRoom() {
-    const roomName = prompt("Nom de la room à rejoindre :")
-    if (!roomName || roomName.trim() === "") return
-
-    const password = prompt("Mot de passe (laisser vide si room publique) :")
-
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(`JOIN_ROOM:${roomName.trim()}:${password || ""}`)
-    }
-  }
-
-  requestRoomList() {
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send("ROOMS")
-    }
-  }
-
-  updateRoomsList(rooms) {
-    this.availableRooms = rooms
-    // Mettre à jour l'affichage si nécessaire
-    console.log("Rooms disponibles:", rooms)
-  }
-
-  updateRoomDisplay() {
-    // Mettre à jour l'affichage de la room actuelle
-    const roomDisplay = document.getElementById("currentRoom")
-    if (roomDisplay) {
-      roomDisplay.textContent = this.currentRoom
-    }
-  }
 }
 
-// Initialiser l'application quand la page est chargée
+// Initialiser l'application
+let chatClient
 document.addEventListener("DOMContentLoaded", () => {
-  new ChatClient()
+  chatClient = new ChatClient()
 })
