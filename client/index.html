@@ -3,187 +3,458 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatHub - Salles de Discussion</title>
-    <link rel="stylesheet" href="style.css">
+    <title>ChatHub - Plateforme de Chat en Temps Réel</title>
+    <link rel="stylesheet" href="home.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <!-- Écran de connexion -->
-        <div id="loginScreen" class="screen">
-            <div class="login-form">
-                <h1>🚀 ChatHub</h1>
-                <p class="subtitle">Rejoignez des conversations en temps réel</p>
-                
-                <input type="text" id="usernameInput" placeholder="Entrez votre pseudonyme" maxlength="20">
-                <input type="text" id="serverInput" placeholder="Adresse du serveur (localhost:3000)" value="localhost:3000">
-                
-                <div class="sound-settings">
-                    <label class="sound-toggle">
-                        <input type="checkbox" id="soundEnabled" checked>
-                        <span>🔊 Sons de notification activés</span>
-                    </label>
-                </div>
-                
-                <button id="connectBtn" class="primary-btn">Se connecter</button>
-                <div id="connectionStatus"></div>
-                
-                <div class="instructions">
-                    <h3>💡 Instructions :</h3>
-                    <ol>
-                        <li>Assurez-vous que le serveur C est démarré</li>
-                        <li>Assurez-vous que le proxy WebSocket est démarré</li>
-                        <li>Entrez votre pseudonyme unique</li>
-                        <li>Configurez vos préférences sonores</li>
-                        <li>Cliquez sur "Se connecter"</li>
-                    </ol>
-                </div>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <span class="brand-icon">💬</span>
+                <span class="brand-text">ChatHub</span>
+            </div>
+            <div class="nav-menu">
+                <a href="#features" class="nav-link">Fonctionnalités</a>
+                <a href="#how-it-works" class="nav-link">Comment ça marche</a>
+                <a href="#tech" class="nav-link">Technologie</a>
+                <a href="#contact" class="nav-link">Contact</a>
+                <a href="chat.html" class="nav-cta">Commencer</a>
+            </div>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
         </div>
+    </nav>
 
-        <!-- Écran de sélection de salle -->
-        <div id="roomScreen" class="screen hidden">
-            <div class="room-form">
-                <div class="room-header">
-                    <h1>🏠 Choisir une salle</h1>
-                    <p class="welcome-text">Bienvenue <span id="welcomeUsername"></span> !</p>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="badge-icon">🚀</span>
+                    <span>Nouvelle génération de chat</span>
                 </div>
-                
-                <!-- Salle publique -->
-                <div class="room-option public-room">
-                    <div class="room-icon">🌍</div>
-                    <div class="room-content">
-                        <h3>Salle publique</h3>
-                        <p>Rejoignez la salle de discussion générale ouverte à tous</p>
-                        <button id="joinPublicBtn" class="room-btn public">
-                            <span>Rejoindre la salle publique</span>
-                            <i>→</i>
-                        </button>
+                <h1 class="hero-title">
+                    Connectez-vous avec
+                    <span class="gradient-text">ChatHub</span>
+                </h1>
+                <p class="hero-description">
+                    Une plateforme de chat moderne et sécurisée qui permet la communication en temps réel 
+                    avec des salles publiques et privées. Rejoignez des milliers d'utilisateurs dans des 
+                    conversations enrichissantes.
+                </p>
+                <div class="hero-actions">
+                    <a href="chat.html" class="btn btn-primary">
+                        <span>Commencer maintenant</span>
+                        <span class="btn-icon">→</span>
+                    </a>
+                    <a href="#demo" class="btn btn-secondary">
+                        <span class="btn-icon">▶</span>
+                        <span>Voir la démo</span>
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <div class="stat-number">100+</div>
+                        <div class="stat-label">Utilisateurs simultanés</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">∞</div>
+                        <div class="stat-label">Salles de chat</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">Disponibilité</div>
                     </div>
                 </div>
-
-                <!-- Créer une salle privée -->
-                <div class="room-option private-room">
-                    <div class="room-icon">🔐</div>
-                    <div class="room-content">
-                        <h3>Créer une salle privée</h3>
-                        <p>Créez votre propre salle sécurisée par mot de passe</p>
-                        <div class="input-group">
-                            <input type="text" id="roomNameInput" placeholder="Nom de la salle" maxlength="30">
-                            <input type="password" id="roomPasswordInput" placeholder="Mot de passe" maxlength="50">
+            </div>
+            <div class="hero-visual">
+                <div class="chat-mockup">
+                    <div class="mockup-header">
+                        <div class="mockup-controls">
+                            <span class="control red"></span>
+                            <span class="control yellow"></span>
+                            <span class="control green"></span>
                         </div>
-                        <button id="createRoomBtn" class="room-btn create">
-                            <span>Créer la salle</span>
-                            <i>+</i>
-                        </button>
+                        <div class="mockup-title">ChatHub - Salle Générale</div>
                     </div>
-                </div>
-
-                <!-- Rejoindre une salle privée -->
-                <div class="room-option join-room">
-                    <div class="room-icon">🔑</div>
-                    <div class="room-content">
-                        <h3>Rejoindre une salle privée</h3>
-                        <p>Entrez les informations d'une salle privée existante</p>
-                        <div class="input-group">
-                            <input type="text" id="joinRoomNameInput" placeholder="Nom de la salle" maxlength="30">
-                            <input type="password" id="joinRoomPasswordInput" placeholder="Mot de passe" maxlength="50">
-                        </div>
-                        <button id="joinPrivateBtn" class="room-btn join">
-                            <span>Rejoindre la salle</span>
-                            <i>🔓</i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Liste des salles disponibles -->
-                <div class="room-option rooms-list-section">
-                    <div class="room-icon">📋</div>
-                    <div class="room-content">
-                        <h3>Salles disponibles</h3>
-                        <p>Découvrez les salles publiques actives</p>
-                        <div id="roomsList" class="rooms-list">
-                            <div class="loading-rooms">
-                                <div class="spinner"></div>
-                                <p>Chargement des salles...</p>
+                    <div class="mockup-content">
+                        <div class="mockup-sidebar">
+                            <div class="sidebar-section">
+                                <div class="sidebar-title">👥 Utilisateurs (3)</div>
+                                <div class="user-item active">Alice</div>
+                                <div class="user-item">Bob</div>
+                                <div class="user-item">Charlie</div>
                             </div>
                         </div>
-                        <button id="refreshRoomsBtn" class="room-btn refresh">
-                            <span>Actualiser</span>
-                            <i>🔄</i>
-                        </button>
-                    </div>
-                </div>
-
-                <button id="backToLoginBtn" class="back-btn">
-                    <i>←</i>
-                    <span>Retour à la connexion</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Interface de chat -->
-        <div id="chatScreen" class="screen hidden">
-            <div class="chat-header">
-                <div class="room-info">
-                    <h2 id="roomTitle">Chat Room</h2>
-                    <span id="roomType" class="room-type"></span>
-                    <div class="room-stats">
-                        <span id="onlineCount">0 en ligne</span>
-                    </div>
-                </div>
-                <div class="user-info">
-                    <div class="sound-control">
-                        <label class="sound-toggle-chat">
-                            <input type="checkbox" id="soundEnabledChat" checked>
-                            <span></span>
-                        </label>
-                    </div>
-                    <div class="user-badge">
-                        <span id="currentUser"></span>
-                    </div>
-                    <button id="leaveRoomBtn" class="action-btn leave">
-                        <i>🚪</i>
-                        <span>Quitter</span>
-                    </button>
-                    <button id="disconnectBtn" class="action-btn disconnect">
-                        <i>⚡</i>
-                        <span>Déconnexion</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="chat-container">
-                <!-- Liste des utilisateurs connectés -->
-                <div class="users-panel">
-                    <div class="panel-header">
-                        <h3>👥 Utilisateurs</h3>
-                        <span class="user-count-badge" id="userCount">0</span>
-                    </div>
-                    <ul id="usersList"></ul>
-                    <button id="refreshUsers" class="refresh-users-btn">
-                        <i>🔄</i>
-                        <span>Actualiser</span>
-                    </button>
-                </div>
-
-                <!-- Zone de messages -->
-                <div class="messages-panel">
-                    <div id="messagesContainer" class="messages-container"></div>
-                    
-                    <div class="message-input-container">
-                        <div class="message-input">
-                            <input type="text" id="messageInput" placeholder="Tapez votre message..." maxlength="500">
-                            <button id="sendBtn" class="send-btn">
-                                <i>📤</i>
-                            </button>
+                        <div class="mockup-chat">
+                            <div class="chat-message other">
+                                <div class="message-sender">Alice</div>
+                                <div class="message-content">Salut tout le monde ! 👋</div>
+                                <div class="message-time">14:30</div>
+                            </div>
+                            <div class="chat-message own">
+                                <div class="message-sender">Vous</div>
+                                <div class="message-content">Bonjour Alice ! Comment ça va ?</div>
+                                <div class="message-time">14:31</div>
+                            </div>
+                            <div class="chat-message other">
+                                <div class="message-sender">Bob</div>
+                                <div class="message-content">Parfait pour discuter ! 🎉</div>
+                                <div class="message-time">14:32</div>
+                            </div>
+                            <div class="typing-indicator">
+                                <span>Charlie est en train d'écrire...</span>
+                            </div>
                         </div>
-                        <div class="typing-indicator" id="typingIndicator"></div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <script src="script.js"></script>
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Fonctionnalités Puissantes</h2>
+                <p class="section-description">
+                    Découvrez tout ce que ChatHub peut faire pour améliorer vos conversations
+                </p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🌍</div>
+                    <h3 class="feature-title">Salles Publiques</h3>
+                    <p class="feature-description">
+                        Rejoignez des conversations ouvertes à tous. Parfait pour rencontrer 
+                        de nouvelles personnes et participer à des discussions communautaires.
+                    </p>
+                    <div class="feature-benefits">
+                        <span class="benefit">✓ Accès libre</span>
+                        <span class="benefit">✓ Communauté active</span>
+                        <span class="benefit">✓ Modération automatique</span>
+                    </div>
+                </div>
+
+                <div class="feature-card featured">
+                    <div class="feature-badge">Populaire</div>
+                    <div class="feature-icon">🔐</div>
+                    <h3 class="feature-title">Salles Privées</h3>
+                    <p class="feature-description">
+                        Créez des espaces sécurisés avec mot de passe pour vos conversations 
+                        privées. Idéal pour les équipes et les groupes d'amis.
+                    </p>
+                    <div class="feature-benefits">
+                        <span class="benefit">✓ Protection par mot de passe</span>
+                        <span class="benefit">✓ Contrôle total</span>
+                        <span class="benefit">✓ Confidentialité garantie</span>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">Temps Réel</h3>
+                    <p class="feature-description">
+                        Communication instantanée grâce à la technologie WebSocket. 
+                        Vos messages arrivent en temps réel sans délai.
+                    </p>
+                    <div class="feature-benefits">
+                        <span class="benefit">✓ Latence minimale</span>
+                        <span class="benefit">✓ Synchronisation parfaite</span>
+                        <span class="benefit">✓ Indicateurs de frappe</span>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">👥</div>
+                    <h3 class="feature-title">Gestion d'Utilisateurs</h3>
+                    <p class="feature-description">
+                        Voyez qui est en ligne, gérez les participants et suivez 
+                        l'activité de votre salle en temps réel.
+                    </p>
+                    <div class="feature-benefits">
+                        <span class="benefit">✓ Liste en temps réel</span>
+                        <span class="benefit">✓ Statuts de connexion</span>
+                        <span class="benefit">✓ Historique d'activité</span>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔊</div>
+                    <h3 class="feature-title">Notifications</h3>
+                    <p class="feature-description">
+                        Restez informé avec des notifications sonores personnalisables 
+                        et des alertes visuelles pour ne rien manquer.
+                    </p>
+                    <div class="feature-benefits">
+                        <span class="benefit">✓ Sons personnalisables</span>
+                        <span class="benefit">✓ Alertes visuelles</span>
+                        <span class="benefit">✓ Contrôle granulaire</span>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3 class="feature-title">Responsive</h3>
+                    <p class="feature-description">
+                        Interface adaptative qui fonctionne parfaitement sur tous 
+                        vos appareils : ordinateur, tablette et smartphone.
+                    </p>
+                    <div class="feature-benefits">
+                        <span class="benefit">✓ Design adaptatif</span>
+                        <span class="benefit">✓ Performance optimisée</span>
+                        <span class="benefit">✓ Expérience uniforme</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Comment ça marche</h2>
+                <p class="section-description">
+                    Commencez à chatter en quelques étapes simples
+                </p>
+            </div>
+            <div class="steps-container">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Connexion</h3>
+                        <p class="step-description">
+                            Choisissez un pseudonyme unique et connectez-vous à notre serveur sécurisé. 
+                            Aucune inscription requise !
+                        </p>
+                    </div>
+                    <div class="step-visual">
+                        <div class="visual-box">
+                            <div class="login-form-mini">
+                                <div class="input-field">Votre pseudonyme</div>
+                                <div class="connect-btn">Se connecter</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Choisir une Salle</h3>
+                        <p class="step-description">
+                            Rejoignez une salle publique ou créez votre propre salle privée 
+                            avec un mot de passe personnalisé.
+                        </p>
+                    </div>
+                    <div class="step-visual">
+                        <div class="visual-box">
+                            <div class="room-options">
+                                <div class="room-option-mini public">🌍 Salle Publique</div>
+                                <div class="room-option-mini private">🔐 Salle Privée</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Commencer à Chatter</h3>
+                        <p class="step-description">
+                            Envoyez des messages, voyez qui est en ligne et profitez 
+                            d'une expérience de chat fluide et moderne.
+                        </p>
+                    </div>
+                    <div class="step-visual">
+                        <div class="visual-box">
+                            <div class="chat-preview">
+                                <div class="message-preview">Bonjour tout le monde ! 👋</div>
+                                <div class="input-preview">Tapez votre message...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Section -->
+    <section id="tech" class="tech">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Technologie de Pointe</h2>
+                <p class="section-description">
+                    Construit avec les meilleures technologies pour une performance optimale
+                </p>
+            </div>
+            <div class="tech-grid">
+                <div class="tech-card">
+                    <div class="tech-icon">⚙️</div>
+                    <h3 class="tech-title">Serveur C</h3>
+                    <p class="tech-description">
+                        Serveur haute performance écrit en C avec gestion multi-thread 
+                        pour supporter jusqu'à 100 connexions simultanées.
+                    </p>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-icon">🌐</div>
+                    <h3 class="tech-title">WebSocket</h3>
+                    <p class="tech-description">
+                        Communication bidirectionnelle en temps réel grâce au protocole 
+                        WebSocket pour une latence minimale.
+                    </p>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-icon">🎨</div>
+                    <h3 class="tech-title">Interface Moderne</h3>
+                    <p class="tech-description">
+                        Interface utilisateur responsive et intuitive développée avec 
+                        HTML5, CSS3 et JavaScript moderne.
+                    </p>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-icon">🔒</div>
+                    <h3 class="tech-title">Sécurité</h3>
+                    <p class="tech-description">
+                        Protection des données avec validation des entrées, gestion 
+                        des erreurs et salles sécurisées par mot de passe.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2 class="cta-title">Prêt à commencer ?</h2>
+                <p class="cta-description">
+                    Rejoignez ChatHub dès maintenant et découvrez une nouvelle façon de communiquer
+                </p>
+                <div class="cta-actions">
+                    <a href="chat.html" class="btn btn-primary large">
+                        <span>Lancer ChatHub</span>
+                        <span class="btn-icon">🚀</span>
+                    </a>
+                </div>
+                <div class="cta-note">
+                    <span>✓ Gratuit</span>
+                    <span>✓ Aucune inscription</span>
+                    <span>✓ Démarrage instantané</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact" class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="brand">
+                        <span class="brand-icon">💬</span>
+                        <span class="brand-text">ChatHub</span>
+                    </div>
+                    <p class="footer-description">
+                        La plateforme de chat moderne qui connecte les gens à travers le monde.
+                    </p>
+                </div>
+                <div class="footer-links">
+                    <div class="link-group">
+                        <h4 class="link-title">Produit</h4>
+                        <a href="#features" class="footer-link">Fonctionnalités</a>
+                        <a href="#how-it-works" class="footer-link">Comment ça marche</a>
+                        <a href="chat.html" class="footer-link">Commencer</a>
+                    </div>
+                    <div class="link-group">
+                        <h4 class="link-title">Développeurs</h4>
+                        <a href="#" class="footer-link">Documentation</a>
+                        <a href="#" class="footer-link">API</a>
+                        <a href="#" class="footer-link">GitHub</a>
+                    </div>
+                    <div class="link-group">
+                        <h4 class="link-title">Support</h4>
+                        <a href="#" class="footer-link">Centre d'aide</a>
+                        <a href="#" class="footer-link">Contact</a>
+                        <a href="#" class="footer-link">Signaler un bug</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-copyright">
+                    <p>&copy; 2024 ChatHub. Tous droits réservés.</p>
+                </div>
+                <div class="footer-social">
+                    <a href="#" class="social-link">GitHub</a>
+                    <a href="#" class="social-link">Twitter</a>
+                    <a href="#" class="social-link">Discord</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Navigation mobile toggle
+        const navToggle = document.querySelector('.nav-toggle');
+        const navMenu = document.querySelector('.nav-menu');
+
+        navToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+            navToggle.classList.toggle('active');
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Navbar background on scroll
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 100) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Animate elements on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all animatable elements
+        document.querySelectorAll('.feature-card, .step, .tech-card').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
 </body>
 </html>
