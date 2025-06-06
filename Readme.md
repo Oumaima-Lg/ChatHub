@@ -52,6 +52,9 @@ ChatHub est une application de chat moderne et complète permettant la communica
 
 ## 🏗️ Architecture
 
+![alt text](<_- visual selection (7).png>)
+
+
 ┌─────────────────┐    WebSocket    ┌─────────────────┐
 │   Client Web    │ ◄──────────────► │   Serveur C     │
 │   (JavaScript)  │                 │   (Multi-thread)│
