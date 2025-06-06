@@ -2,6 +2,11 @@
 
 ChatHub est une application de chat moderne et complète permettant la communication en temps réel avec support des salles publiques et privées. Le projet comprend un serveur C robuste et une interface web responsive.
 
+![alt text](image-2.png)
+![alt text](image-3.png)
+![alt text](image-4.png)
+![alt text](image-5.png)
+
 ## 📋 Table des Matières
 
 - [Fonctionnalités](#-fonctionnalités)
