@@ -920,7 +920,7 @@ body {
   }
 
   .room-option {
-    flex-direction: column;
+    /* flex-direction: column; */
     text-align: center;
   }
 
@@ -949,6 +949,11 @@ body {
 
   .messages-container {
     padding: 15px;
+  }
+
+  .room-option {
+    flex-direction: column;
+    text-align: center;
   }
 }
 
