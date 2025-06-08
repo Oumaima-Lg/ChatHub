@@ -503,32 +503,61 @@ class ChatClient {
     }
   }
 
+  // addMessage(type, sender, content) {
+  //   const messageDiv = document.createElement("div")
+  //   messageDiv.className = `message message-${type}`
+
+  //   const time = new Date().toLocaleTimeString("fr-FR", {
+  //     hour: "2-digit",
+  //     minute: "2-digit",
+  //   })
+
+  //   let html = ""
+
+  //   if (type === "system") {
+  //     html = `<div class="message-content">${content}</div>`
+  //   } else {
+  //     if (type === "other") {
+  //       html += `<div class="message-sender">${sender}</div>`
+  //     } else if (type === "own") {
+  //       html += `<div class="message-sender">Vous</div>`
+  //     }
+  //     html += `<div class="message-content">${this.escapeHtml(content)}</div>`
+  //     html += `<div class="message-time">${time}</div>`
+  //   }
+
+  //   messageDiv.innerHTML = html
+  //   this.messagesContainer.appendChild(messageDiv)
+  //   this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight
+  // }
   addMessage(type, sender, content) {
-    const messageDiv = document.createElement("div")
-    messageDiv.className = `message message-${type}`
+    const messageDiv = document.createElement("div");
+    messageDiv.className = `message message-${type}`;
 
     const time = new Date().toLocaleTimeString("fr-FR", {
       hour: "2-digit",
       minute: "2-digit",
-    })
+    });
 
-    let html = ""
+    let html = "";
 
     if (type === "system") {
-      html = `<div class="message-content">${content}</div>`
+      html = `<div class="message-content">${this.escapeHtml(content)}</div>`;
     } else {
       if (type === "other") {
-        html += `<div class="message-sender">${sender}</div>`
+        html += `<div class="message-sender">${sender}</div>`;
       } else if (type === "own") {
-        html += `<div class="message-sender">Vous</div>`
+        html += `<div class="message-sender">Vous</div>`;
       }
-      html += `<div class="message-content">${this.escapeHtml(content)}</div>`
-      html += `<div class="message-time">${time}</div>`
+
+      // 🔁 Ici on utilise le Markdown + DOMPurify à la place d'un simple escapeHtml
+      html += `<div class="message-content">${formatMessageWithMarkdown(content)}</div>`;
+      html += `<div class="message-time">${time}</div>`;
     }
 
-    messageDiv.innerHTML = html
-    this.messagesContainer.appendChild(messageDiv)
-    this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight
+    messageDiv.innerHTML = html;
+    this.messagesContainer.appendChild(messageDiv);
+    this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
   }
 
   updateUsersList(users) {
@@ -644,3 +673,39 @@ let chatClient
 document.addEventListener("DOMContentLoaded", () => {
   chatClient = new ChatClient()
 })
+
+// ici pour les emojis
+const toggleBtn = document.getElementById('toggle-emoji');
+const pickerContainer = document.getElementById('emoji-picker-container');
+const picker = pickerContainer.querySelector('emoji-picker');
+const messageInput = document.getElementById('messageInput');
+
+//ici pour afficher et masquer la liste des emojis
+toggleBtn.addEventListener('click', (e) => {
+    e.preventDefault(); 
+    pickerContainer.style.display =
+    pickerContainer.style.display === 'none' ? 'block' : 'none';
+});
+
+// ici pour insérer l'emoji choisi dans le texte
+picker.addEventListener('emoji-click', event => {
+    const emoji = event.detail.unicode;
+    const cursorPos = messageInput.selectionStart;
+    const text = messageInput.value;
+    // Insertion à la position du curseur
+    messageInput.value = text.slice(0, cursorPos) + emoji + text.slice(cursorPos);
+    messageInput.focus();
+    messageInput.setSelectionRange(cursorPos + emoji.length, cursorPos + emoji.length);
+});
+
+// Masquer la palette si on a cliquer ailleurs que le btn
+document.addEventListener('click', (e) => {
+    if (!pickerContainer.contains(e.target) && !toggleBtn.contains(e.target)) {
+    pickerContainer.style.display = 'none';
+    }
+});
+
+function formatMessageWithMarkdown(rawMessage) {
+  const html = marked.parseInline(rawMessage); // Markdown vers HTML
+  return DOMPurify.sanitize(html);             // Nettoyage XSS
+}
