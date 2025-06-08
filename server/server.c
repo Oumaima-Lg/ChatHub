@@ -5,8 +5,6 @@
 #include <ws2tcpip.h>
 #include <process.h>
 #include <signal.h>
-#include <windows.h>
-#include <stdint.h>
 
 #define PORT 8080
 #define MAX_CLIENTS 100

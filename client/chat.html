@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChatHub - Salles de Discussion</title>
     <link rel="stylesheet" href="chat.css">
-    <!-- la bib des emojis -->
-    <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1.6.2/index.js"></script>
-
 </head>
 <body>
     <div class="container">
@@ -180,15 +177,11 @@
                     <div class="message-input-container">
                         <div class="message-input">
                             <input type="text" id="messageInput" placeholder="Tapez votre message..." maxlength="500">
-                            <button id="toggle-emoji" class="emoji-btn">😊</button>
                             <button id="sendBtn" class="send-btn">
                                 <i>📤</i>
                             </button>
                         </div>
                         <div class="typing-indicator" id="typingIndicator"></div>
-                        <div id="emoji-picker-container">
-                            <emoji-picker id="picker" categories='["smileys", "people", "animals", "food", "activity", "travel", "objects", "symbols", "flags"]'></emoji-picker>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -196,7 +189,5 @@
     </div>
 
     <script src="script.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js"></script>
 </body>
 </html>
