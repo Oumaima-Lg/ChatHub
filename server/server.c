@@ -13,6 +13,7 @@
 #define MAX_ROOMS 50
 #define ROOM_NAME_SIZE 30
 #define PASSWORD_SIZE 20
+#define MAX_FILE_SIZE 10485760 // 10 MB
 
 typedef struct
 {
@@ -49,7 +50,7 @@ void remove_client(int id);
 void broadcast_message(char *message, int sender_id);
 void send_client_list(SOCKET client_socket);
 
-// Déclarations des fonctions pour les rooms
+// les rooms
 void init_rooms();
 int find_room_by_name(const char *room_name);
 int create_room(const char *room_name, const char *password, int creator_id);
@@ -58,10 +59,14 @@ void leave_room(int client_id, int room_index);
 void broadcast_to_room(char *message, int sender_id, int room_index);
 void send_room_list(SOCKET client_socket);
 
-// Nouvelles fonctions pour la gestion améliorée des salles
+// la gestion améliorée des salles
 void send_room_users(SOCKET client_socket, int room_index);
 void send_room_message(int sender_id, int room_index, const char *message);
 void handle_leave_room(int client_id, const char *room_name);
+
+void handle_file_message(int sender_id, const char *room_name, const char *file_data);
+
+void handle_file_notification(int sender_id, const char *room_name, const char *notification_data);
 
 // Thread pour gérer chaque client
 unsigned __stdcall handle_client(void *arg);
@@ -246,7 +251,7 @@ int join_room(int client_id, const char *room_name, const char *password)
     {
         rooms[room_index].client_ids[rooms[room_index].client_count] = client_id;
         rooms[room_index].client_count++;
-        printf("DEBUG: Client %d ajouté à la room '%s'. Total: %d utilisateurs\n", 
+        printf("DEBUG: Client %d ajouté à la room '%s'. Total: %d utilisateurs\n",
                client_id, room_name, rooms[room_index].client_count);
     }
 
@@ -270,7 +275,7 @@ void leave_room(int client_id, int room_index)
                 rooms[room_index].client_ids[j] = rooms[room_index].client_ids[j + 1];
             }
             rooms[room_index].client_count--;
-            printf("DEBUG: Client %d retiré de la room '%s'. Total: %d utilisateurs\n", 
+            printf("DEBUG: Client %d retiré de la room '%s'. Total: %d utilisateurs\n",
                    client_id, rooms[room_index].name, rooms[room_index].client_count);
             break;
         }
@@ -287,7 +292,7 @@ void broadcast_to_room(char *message, int sender_id, int room_index)
     EnterCriticalSection(&rooms_mutex);
     EnterCriticalSection(&clients_mutex);
 
-    printf("DEBUG: Diffusion dans room '%s' (index %d) à %d utilisateurs\n", 
+    printf("DEBUG: Diffusion dans room '%s' (index %d) à %d utilisateurs\n",
            rooms[room_index].name, room_index, rooms[room_index].client_count);
 
     for (int i = 0; i < rooms[room_index].client_count; i++)
@@ -344,7 +349,7 @@ void send_room_users(SOCKET client_socket, int room_index)
     EnterCriticalSection(&rooms_mutex);
     EnterCriticalSection(&clients_mutex);
 
-    printf("DEBUG: Envoi liste utilisateurs pour room '%s' (index %d)\n", 
+    printf("DEBUG: Envoi liste utilisateurs pour room '%s' (index %d)\n",
            rooms[room_index].name, room_index);
 
     int count = 0;
@@ -626,7 +631,7 @@ unsigned __stdcall handle_client(void *arg)
 
             if (room_name && message_content)
             {
-                printf("DEBUG: Message ROOM_MSG de %s pour room '%s': %s\n", 
+                printf("DEBUG: Message ROOM_MSG de %s pour room '%s': %s\n",
                        client->name, room_name, message_content);
                 int room_index = find_room_by_name(room_name);
                 if (room_index >= 0)
@@ -638,6 +643,30 @@ unsigned __stdcall handle_client(void *arg)
                 {
                     printf("DEBUG: Room '%s' non trouvée pour le message\n", room_name);
                 }
+            }
+        }
+        else if (strncmp(buffer, "FILE:", 5) == 0)
+        {
+            char *file_data = buffer + 5;
+            char *room_name = strtok(file_data, ":");
+            char *file_content = strtok(NULL, "");
+
+            if (room_name && file_content)
+            {
+                printf("DEBUG: Message FILE de %s pour room '%s'\n", client->name, room_name);
+                handle_file_message(client->id, room_name, file_content);
+            }
+        }
+        else if (strncmp(buffer, "FILE_NOTIFICATION:", 17) == 0)
+        {
+            char *notification_data = buffer + 17;
+            char *room_name = strtok(notification_data, ":");
+            char *notification_content = strtok(NULL, "");
+
+            if (room_name && notification_content)
+            {
+                printf("DEBUG: Notification de fichier de %s pour room '%s'\n", client->name, room_name);
+                handle_file_notification(client->id, room_name, notification_content);
             }
         }
         else
@@ -663,6 +692,137 @@ unsigned __stdcall handle_client(void *arg)
     return 0;
 }
 
+// pour gérer les messages de fichiers
+void handle_file_message(int sender_id, const char *room_name, const char *file_data)
+{
+    int room_index = find_room_by_name(room_name);
+    if (room_index < 0)
+        return;
+
+    // Trouver le nom de l'expéditeur
+    char sender_name[NAME_SIZE] = "";
+    EnterCriticalSection(&clients_mutex);
+    for (int i = 0; i < client_count; i++)
+    {
+        if (clients[i].id == sender_id)
+        {
+            strncpy(sender_name, clients[i].name, NAME_SIZE - 1);
+            sender_name[NAME_SIZE - 1] = '\0';
+            break;
+        }
+    }
+    LeaveCriticalSection(&clients_mutex);
+
+    // Préparer le message avec le préfixe de fichier
+    char formatted_message[BUFFER_SIZE + NAME_SIZE + ROOM_NAME_SIZE + 20];
+    snprintf(formatted_message, sizeof(formatted_message), "FILE:%s:%s:%s",
+             room_name, sender_name, file_data);
+
+    printf("DEBUG: Message de fichier formaté pour room '%s' de '%s'\n", room_name, sender_name);
+
+    // Envoyer à tous les clients dans la salle
+    EnterCriticalSection(&rooms_mutex);
+    EnterCriticalSection(&clients_mutex);
+
+    for (int i = 0; i < rooms[room_index].client_count; i++)
+    {
+        int client_id = rooms[room_index].client_ids[i];
+        if (client_id != sender_id)
+        {
+            for (int j = 0; j < client_count; j++)
+            {
+                if (clients[j].id == client_id)
+                {
+                    send(clients[j].socket, formatted_message, (int)strlen(formatted_message), 0);
+                    printf("DEBUG: Message FILE envoyé à %s\n", clients[j].name);
+                    break;
+                }
+            }
+        }
+    }
+
+    LeaveCriticalSection(&clients_mutex);
+    LeaveCriticalSection(&rooms_mutex);
+}
+
+void handle_file_notification(int sender_id, const char *room_name, const char *notification_data)
+{
+    int room_index = find_room_by_name(room_name);
+    if (room_index < 0)
+        return;
+
+    // Trouver le nom de l'expéditeur
+    char sender_name[NAME_SIZE] = "";
+    EnterCriticalSection(&clients_mutex);
+    for (int i = 0; i < client_count; i++)
+    {
+        if (clients[i].id == sender_id)
+        {
+            strncpy(sender_name, clients[i].name, NAME_SIZE - 1);
+            sender_name[NAME_SIZE - 1] = '\0';
+            break;
+        }
+    }
+    LeaveCriticalSection(&clients_mutex);
+
+    // Ajouter le nom de l'expéditeur à la notification
+    char *notification_with_sender = malloc(strlen(notification_data) + strlen(sender_name) + 50);
+    if (notification_with_sender == NULL)
+    {
+        printf("Erreur d'allocation mémoire pour la notification\n");
+        return;
+    }
+
+    // Insérer le nom de l'expéditeur dans la notification JSON
+    // Trouver la position après le premier {
+    const char *json_start = strchr(notification_data, '{');
+    if (json_start == NULL)
+    {
+        free(notification_with_sender);
+        return;
+    }
+
+    int pos = json_start - notification_data + 1;
+    strncpy(notification_with_sender, notification_data, pos);
+    notification_with_sender[pos] = '\0';
+    strcat(notification_with_sender, "\"sender\":\"");
+    strcat(notification_with_sender, sender_name);
+    strcat(notification_with_sender, "\",");
+    strcat(notification_with_sender, notification_data + pos);
+
+    // Préparer le message avec le préfixe de notification
+    char formatted_message[BUFFER_SIZE + NAME_SIZE + ROOM_NAME_SIZE + 20];
+    snprintf(formatted_message, sizeof(formatted_message), "FILE_NOTIFICATION:%s:%s",
+             room_name, notification_with_sender);
+
+    printf("DEBUG: Notification de fichier formatée pour room '%s' de '%s'\n", room_name, sender_name);
+
+    // Envoyer à tous les clients dans la salle
+    EnterCriticalSection(&rooms_mutex);
+    EnterCriticalSection(&clients_mutex);
+
+    for (int i = 0; i < rooms[room_index].client_count; i++)
+    {
+        int client_id = rooms[room_index].client_ids[i];
+        if (client_id != sender_id)
+        {
+            for (int j = 0; j < client_count; j++)
+            {
+                if (clients[j].id == client_id)
+                {
+                    send(clients[j].socket, formatted_message, (int)strlen(formatted_message), 0);
+                    printf("DEBUG: Notification FILE_NOTIFICATION envoyée à %s\n", clients[j].name);
+                    break;
+                }
+            }
+        }
+    }
+
+    LeaveCriticalSection(&clients_mutex);
+    LeaveCriticalSection(&rooms_mutex);
+
+    free(notification_with_sender);
+}
 int main()
 {
     WSADATA wsa;

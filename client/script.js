@@ -17,8 +17,14 @@ class ChatClient {
     this.receiveSound = null
     this.initializeSounds()
 
+    // Initialiser le gestionnaire de fichiers après l'initialisation des éléments
+    this.fileManager = null;
+
     this.initializeElements()
     this.attachEventListeners()
+
+    // Initialiser le gestionnaire de fichiers
+    this.fileManager = new FileManager(this);
   }
 
   initializeSounds() {
@@ -340,6 +346,10 @@ class ChatClient {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       this.socket.send(`LEAVE_ROOM:${this.currentRoom}`)
     }
+    // Mettre à jour la liste des fichiers pour la nouvelle salle
+    if (this.fileManager) {
+        this.fileManager.changeRoom("general");
+    }
 
     // Retourner à l'écran de sélection de salle
     this.switchToRoomSelection()
@@ -500,10 +510,52 @@ class ChatClient {
         this.currentRoom = "general" // Revenir à la salle générale par défaut
         this.switchToRoomSelection()
       }
+    } else if (data.startsWith("FILE:")) {
+      const parts = data.substring(5).split(":");
+      const roomName = parts[0];
+      const fileDataStr = parts.slice(1).join(":");
+
+      try {
+        const fileMessage = JSON.parse(fileDataStr);
+        const fileData = {
+          id: fileMessage.fileId,
+          name: fileMessage.fileName,
+          type: fileMessage.fileType,
+          size: fileMessage.fileSize,
+          data: fileMessage.fileData,
+          sender: sender,
+          timestamp: Date.now()
+        };
+
+        // Vérifier si le message est pour la salle actuelle
+        if (roomName === this.currentRoom) {
+          this.fileManager.receiveFile(sender, fileData);
+        }
+      } catch (error) {
+        console.error("Erreur lors du traitement du message de fichier:", error);
+      }
+    } else if (data.startsWith("FILE_NOTIFICATION:")) {
+        const parts = data.substring(17).split(":");
+        const roomName = parts[0];
+        const notificationData = parts.slice(1).join(":");
+
+        try {
+            const notification = JSON.parse(notificationData);
+            const sender = notification.sender || "Utilisateur";
+
+            // Vérifier si le message est pour la salle actuelle
+            if (roomName === this.currentRoom) {
+                this.fileManager.receiveFileNotification(sender, notification);
+            }
+        } catch (error) {
+            console.error("Erreur lors du traitement de la notification de fichier:", error);
+        }
     }
+
+
   }
 
-  addMessage(type, sender, content) {
+  addMessage(type, sender, content, fileData = null) {
     const messageDiv = document.createElement("div")
     messageDiv.className = `message message-${type}`
 
@@ -523,7 +575,30 @@ class ChatClient {
         html += `<div class="message-sender">Vous</div>`
       }
       html += `<div class="message-content">${this.escapeHtml(content)}</div>`
+
+      // Ajouter l'affichage du fichier si présent
+      if (fileData) {
+        const fileIcon = this.fileManager.getFileIcon(fileData.type);
+        const fileSize = this.fileManager.formatFileSize(fileData.size);
+
+        html += `
+              <div class="message-file">
+                  <div class="message-file-icon">${fileIcon}</div>
+                  <div class="message-file-info">
+                      <div class="message-file-name">${fileData.name}</div>
+                      <div class="message-file-size">${fileSize}</div>
+                  </div>
+                  <a href="${fileData.data}" download="${fileData.name}" class="message-file-download">
+                      Télécharger
+                  </a>
+              </div>
+          `;
+      }
+
       html += `<div class="message-time">${time}</div>`
+
+
+
     }
 
     messageDiv.innerHTML = html
@@ -618,6 +693,10 @@ class ChatClient {
     this.currentUser.textContent = this.username
     this.messageInput.focus()
     this.updateRoomDisplay()
+     // Mettre à jour la liste des fichiers pour la salle actuelle
+    if (this.fileManager) {
+        this.fileManager.updateFilesList(this.currentRoom);
+    }
   }
 
   showStatus(message, type) {

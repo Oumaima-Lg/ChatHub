@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChatHub - Salles de Discussion</title>
     <link rel="stylesheet" href="chat.css">
 </head>
+
 <body>
     <div class="container">
         <!-- Écran de connexion -->
@@ -13,20 +15,21 @@
             <div class="login-form">
                 <h1>🚀 ChatHub</h1>
                 <p class="subtitle">Rejoignez des conversations en temps réel</p>
-                
+
                 <input type="text" id="usernameInput" placeholder="Entrez votre pseudonyme" maxlength="20">
-                <input type="text" id="serverInput" placeholder="Adresse du serveur (localhost:3000)" value="localhost:3000">
-                
+                <input type="text" id="serverInput" placeholder="Adresse du serveur (localhost:3000)"
+                    value="localhost:3000">
+
                 <div class="sound-settings">
                     <label class="sound-toggle">
                         <input type="checkbox" id="soundEnabled" checked>
                         <span>🔊 Sons de notification activés</span>
                     </label>
                 </div>
-                
+
                 <button id="connectBtn" class="primary-btn">Se connecter</button>
                 <div id="connectionStatus"></div>
-                
+
                 <div class="instructions">
                     <h3>💡 Instructions :</h3>
                     <ol>
@@ -51,7 +54,7 @@
                     <h1>🏠 Choisir une salle</h1>
                     <p class="welcome-text">Bienvenue <span id="welcomeUsername"></span> !</p>
                 </div>
-                
+
                 <!-- Salle publique -->
                 <div class="room-option public-room">
                     <div class="room-icon">🌍</div>
@@ -173,9 +176,36 @@
                 <!-- Zone de messages -->
                 <div class="messages-panel">
                     <div id="messagesContainer" class="messages-container"></div>
-                    
+
+                    <div class="files-panel">
+                        <div class="files-header">
+                            <h3>📁 Fichiers partagés</h3>
+                            <button id="toggleFilesBtn" class="toggle-files-btn">
+                                <i>🔽</i>
+                            </button>
+                        </div>
+                        <div id="filesContainer" class="files-container hidden">
+                            <div class="files-list" id="filesList">
+                                <div class="no-files">Aucun fichier partagé dans cette salle</div>
+                            </div>
+                            <div class="file-upload">
+                                <label for="fileInput" class="file-upload-label">
+                                    <i>📤</i>
+                                    <span>Partager un fichier</span>
+                                </label>
+                                <input type="file" id="fileInput" class="file-input" />
+                                <div class="upload-progress" id="uploadProgress">
+                                    <div class="progress-bar" id="progressBar"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="message-input-container">
                         <div class="message-input">
+                            <button id="attachBtn" class="attach-btn">
+                                <i>📎</i>
+                            </button>
                             <input type="text" id="messageInput" placeholder="Tapez votre message..." maxlength="500">
                             <button id="sendBtn" class="send-btn">
                                 <i>📤</i>
@@ -183,11 +213,15 @@
                         </div>
                         <div class="typing-indicator" id="typingIndicator"></div>
                     </div>
+
                 </div>
             </div>
         </div>
     </div>
 
     <script src="script.js"></script>
+    <script src="file-manager.js"></script>
+    
 </body>
+
 </html>
