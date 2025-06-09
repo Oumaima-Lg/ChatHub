@@ -515,15 +515,17 @@ class ChatClient {
     let html = ""
 
     if (type === "system") {
-      html = `<div class="message-content">${content}</div>`
+      html = `<div class="message-content">${this.escapeHtml(content)}</div>`;
     } else {
       if (type === "other") {
-        html += `<div class="message-sender">${sender}</div>`
+        html += `<div class="message-sender">${sender}</div>`;
       } else if (type === "own") {
-        html += `<div class="message-sender">Vous</div>`
+        html += `<div class="message-sender">Vous</div>`;
       }
-      html += `<div class="message-content">${this.escapeHtml(content)}</div>`
-      html += `<div class="message-time">${time}</div>`
+
+      // hna anst3mlo markdown
+      html += `<div class="message-content">${formatMessageWithMarkdown(content)}</div>`;
+      html += `<div class="message-time">${time}</div>`;
     }
 
     messageDiv.innerHTML = html
@@ -644,3 +646,39 @@ let chatClient
 document.addEventListener("DOMContentLoaded", () => {
   chatClient = new ChatClient()
 })
+
+// ici pour les emojis
+const toggleBtn = document.getElementById('toggle-emoji');
+const pickerContainer = document.getElementById('emoji-picker-container');
+const picker = pickerContainer.querySelector('emoji-picker');
+const messageInput = document.getElementById('messageInput');
+
+//ici pour afficher et masquer la liste des emojis
+toggleBtn.addEventListener('click', (e) => {
+    e.preventDefault(); 
+    pickerContainer.style.display =
+    pickerContainer.style.display === 'none' ? 'block' : 'none';
+});
+
+// ici pour insérer l'emoji choisi dans le texte
+picker.addEventListener('emoji-click', event => {
+    const emoji = event.detail.unicode;
+    const cursorPos = messageInput.selectionStart;
+    const text = messageInput.value;
+    
+    messageInput.value = text.slice(0, cursorPos) + emoji + text.slice(cursorPos);
+    messageInput.focus();
+    messageInput.setSelectionRange(cursorPos + emoji.length, cursorPos + emoji.length);
+});
+
+// ici pour masquer palette si on a cliquer ailleurs que le btn (ze3ma fshi blassa akhra anhydoha)
+document.addEventListener('click', (e) => {
+    if (!pickerContainer.contains(e.target) && !toggleBtn.contains(e.target)) {
+    pickerContainer.style.display = 'none';
+    }
+});
+// hadi deyal formattage 
+function formatMessageWithMarkdown(rawMessage) {
+  const html = marked.parseInline(rawMessage); 
+  return DOMPurify.sanitize(html);    
+}
