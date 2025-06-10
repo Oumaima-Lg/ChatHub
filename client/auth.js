@@ -187,10 +187,38 @@ class AuthManager {
         try {
             // Nettoyer le flag de déconnexion manuelle avant la connexion Google
             sessionStorage.removeItem('manualLogout');
+            
+            // Configuration du provider Google
+            this.googleProvider.addScope('email');
+            this.googleProvider.addScope('profile');
+            
+            console.log('Tentative de connexion Google...');
             const result = await signInWithPopup(this.auth, this.googleProvider);
-            this.showSuccess('Connexion Google réussie !');
+            
+            // Obtenir les informations d'identification Google
+            const credential = GoogleAuthProvider.credentialFromResult(result);
+            const token = credential.accessToken;
+            const user = result.user;
+            
+            console.log('Connexion Google réussie:', user.email);
+            this.showSuccess('Connexion Google réussie ! Redirection...');
+            
+            // Les données utilisateur seront sauvegardées automatiquement 
+            // par l'observateur onAuthStateChanged
+            
         } catch (error) {
-            this.handleAuthError(error);
+            console.error('Erreur Google Auth:', error);
+            
+            // Gestion des erreurs spécifiques à Google
+            if (error.code === 'auth/popup-closed-by-user') {
+                this.showError('Connexion annulée par l\'utilisateur');
+            } else if (error.code === 'auth/popup-blocked') {
+                this.showError('Popup bloqué. Autorisez les popups et réessayez');
+            } else if (error.code === 'auth/cancelled-popup-request') {
+                this.showError('Demande de popup annulée');
+            } else {
+                this.handleAuthError(error);
+            }
         } finally {
             this.setLoading(googleBtn, false);
         }
@@ -205,7 +233,20 @@ class AuthManager {
     }
 
     setLoading(btn, isLoading) {
-        btn.classList.toggle('loading', isLoading);
+        const btnText = btn.querySelector('.btn-text');
+        const btnLoading = btn.querySelector('.btn-loading');
+        
+        if (isLoading) {
+            btn.disabled = true;
+            btn.classList.add('loading');
+            if (btnText) btnText.style.display = 'none';
+            if (btnLoading) btnLoading.style.display = 'inline';
+        } else {
+            btn.disabled = false;
+            btn.classList.remove('loading');
+            if (btnText) btnText.style.display = 'inline';
+            if (btnLoading) btnLoading.style.display = 'none';
+        }
     }
 
     showError(message) {
