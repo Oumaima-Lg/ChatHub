@@ -920,7 +920,6 @@ body {
   }
 
   .room-option {
-    /* flex-direction: column; */
     text-align: center;
   }
 
@@ -1007,6 +1006,15 @@ body {
   animation: slideIn 0.3s ease-out;
 }
 
+.message-input {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.message-input input {
+    flex: 1;
+}
+
 /* Animation pour les notifications sonores */
 @keyframes soundPulse {
   0% {
@@ -1023,67 +1031,6 @@ body {
 .sound-notification {
   animation: soundPulse 0.3s ease-out;
 }
-
-
-/*ici style pour les emojis */
-emoji-picker {
-  --background: #fafafa;
-  --border-color: #e0e0e0;
-  --indicator-color: #2196F3;
-  --input-border-color: #ddd;
-  --input-font-color: #333;
-  --input-background: #fff;
-  --outline-color: #2196F3;
-  --hover-background: #f5f5f5;
-  --active-background: #eeeeee;
-  --category-font-color: #666;
-  
-  --emoji-padding: 0.6rem;
-  --emoji-size: 1.3rem;
-  --category-emoji-size: 0.8rem;
-  
-  border: 1px solid #e0e0e0;
-  height: 420px; 
-  max-width: 300px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-  border-radius: 8px;
-}
-.emoji-btn {
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 4px;
-    transition: background-color 0.2s;
-}
-
-.emoji-btn:hover {
-    background-color: rgba(0,0,0,0.1);
-}
-
-#emoji-picker-container {
-    position: absolute;
-    bottom: 60px; 
-    right: 10px;
-    display: none;
-    z-index: 1000;
-}
-.message-input {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-.message-input input {
-    flex: 1;
-}
-
-
-
-
-
-
-
 
 /* Styles pour les éléments d'authentification */
 .user-profile {
@@ -1147,4 +1094,75 @@ emoji-picker {
 
 .status-notification.status-connecting {
     background-color: #f59e0b;
+}
+
+/*ici style pour les emojis */
+emoji-picker {
+  --background: #fafafa;
+  --border-color: #e0e0e0;
+  --indicator-color: #2196F3;
+  --input-border-color: #ddd;
+  --input-font-color: #333;
+  --input-background: #fff;
+  --outline-color: #2196F3;
+  --hover-background: #f5f5f5;
+  --active-background: #eeeeee;
+  --category-font-color: #666;
+  
+  --emoji-padding: 0.6rem;
+  --emoji-size: 1.3rem;
+  --category-emoji-size: 0.8rem;
+  
+  border: 1px solid #e0e0e0;
+  height: 420px; 
+  max-width: 300px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  border-radius: 8px;
+}
+.emoji-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    font-size: 1.2em;
+}
+
+.emoji-btn:hover {
+    background-color: #f0f0f0;
+}
+
+#emoji-picker-container {
+    position: fixed !important;
+    bottom: 80px !important;
+    right: 20px !important;
+    z-index: 9999 !important;
+    background: white !important;
+    border: 2px solid #007bff !important;
+    border-radius: 8px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
+    display: none !important;
+    max-height: 400px !important;
+    overflow: visible !important;
+    width: 320px !important;
+    height: 300px !important;
+}
+
+#emoji-picker-container.show {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+#emoji-picker-container emoji-picker {
+    width: 100% !important;
+    height: 100% !important;
+    border: none !important;
+    --border-radius: 8px;
+}
+
+.emoji-btn:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
 }
