@@ -122,9 +122,21 @@ class ChatClient {
     }
 
     // Méthode pour se déconnecter et revenir à l'authentification
-    logout() {
+    async logout() {
+        // Afficher un message de confirmation
+        const confirmLogout = confirm("Êtes-vous sûr de vouloir vous déconnecter ?");
+        if (!confirmLogout) {
+            return;
+        }
+
+        // Afficher un message de déconnexion
+        this.showStatus("Déconnexion en cours...", "connecting");
+        
+        // Déconnecter du WebSocket
         this.connectionManager.disconnect();
-        AuthCheck.logout();
+        
+        // Déconnecter de Firebase et rediriger
+        await AuthCheck.logout();
     }
 
     // Méthodes déléguées pour maintenir la compatibilité

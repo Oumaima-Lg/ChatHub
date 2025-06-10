@@ -32,11 +32,16 @@ class AuthManager {
     constructor() {
         this.auth = auth;
         this.googleProvider = googleProvider;
+        this.authStateListenerActive = false;
         this.init();
     }
+    
     init() {
         this.setupEventListeners();
-        this.setupAuthStateObserver();
+        // Attendre un peu avant de configurer l'observateur pour éviter les conflits
+        setTimeout(() => {
+            this.setupAuthStateObserver();
+        }, 100);
         console.log('AuthManager initialisé avec Firebase');
     }
 
@@ -64,14 +69,56 @@ class AuthManager {
     }
 
     setupAuthStateObserver() {
+        // Éviter de créer plusieurs observateurs
+        if (this.authStateListenerActive) {
+            return;
+        }
+        
+        this.authStateListenerActive = true;
+        
         onAuthStateChanged(this.auth, (user) => {
+            console.log('Auth state changed:', user ? 'connecté' : 'déconnecté');
+            
+            // Vérifier si on est sur la page d'authentification
+            const isOnAuthPage = window.location.href.includes('auth.html') || 
+                                 window.location.pathname.endsWith('auth.html') ||
+                                 window.location.pathname === '/';
+            
             if (user) {
                 console.log('Utilisateur connecté:', user.email);
-                this.saveUserData(user);
-                this.redirectToChat();
+                
+                // Vérifier si c'est une déconnexion manuelle en cours
+                const isManualLogout = sessionStorage.getItem('manualLogout') === 'true';
+                
+                if (isManualLogout) {
+                    console.log('Déconnexion manuelle en cours - forcer la déconnexion Firebase');
+                    // Ne pas sauvegarder les données utilisateur
+                    // Ne pas rediriger
+                    // Forcer la déconnexion Firebase
+                    signOut(this.auth).then(() => {
+                        console.log('Déconnexion Firebase forcée réussie');
+                        sessionStorage.removeItem('manualLogout');
+                        this.clearUserData();
+                    }).catch(error => {
+                        console.error('Erreur lors de la déconnexion forcée:', error);
+                        // Même en cas d'erreur, nettoyer les données locales
+                        sessionStorage.removeItem('manualLogout');
+                        this.clearUserData();
+                    });
+                    return;
+                }
+                
+                // Si on est sur la page d'auth et que ce n'est pas une déconnexion manuelle,
+                // alors c'est une vraie connexion
+                if (isOnAuthPage) {
+                    this.saveUserData(user);
+                    this.redirectToChat();
+                }
             } else {
                 console.log('Utilisateur déconnecté');
                 this.clearUserData();
+                // Nettoyer le flag de déconnexion manuelle
+                sessionStorage.removeItem('manualLogout');
             }
         });
     }
@@ -90,6 +137,8 @@ class AuthManager {
         this.clearError();
 
         try {
+            // Nettoyer le flag de déconnexion manuelle avant la connexion
+            sessionStorage.removeItem('manualLogout');
             const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
             this.showSuccess('Connexion réussie ! Redirection...');
         } catch (error) {
@@ -104,7 +153,7 @@ class AuthManager {
         const email = document.getElementById('register-email').value;
         const password = document.getElementById('register-password').value;
         const submitBtn = document.querySelector('#register-form .auth-btn');
-        // ici juste bash ntestiw
+        
         if (!name || !email || !password) {
             this.showError('Veuillez remplir tous les champs !');
             return;
@@ -113,10 +162,13 @@ class AuthManager {
             this.showError('Le mot de passe doit contenir au moins 6 caractères');
             return;
         }
+        
         this.setLoading(submitBtn, true);
         this.clearError();
 
         try {
+            // Nettoyer le flag de déconnexion manuelle avant l'inscription
+            sessionStorage.removeItem('manualLogout');
             const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
             await updateProfile(userCredential.user, { displayName: name });
             this.showSuccess('Inscription réussie ! Redirection...');
@@ -133,6 +185,8 @@ class AuthManager {
         this.clearError();
 
         try {
+            // Nettoyer le flag de déconnexion manuelle avant la connexion Google
+            sessionStorage.removeItem('manualLogout');
             const result = await signInWithPopup(this.auth, this.googleProvider);
             this.showSuccess('Connexion Google réussie !');
         } catch (error) {
@@ -218,8 +272,12 @@ class AuthManager {
     }
 
     redirectToChat() {
-        window.location.href = "../chat.html";
+        // Ajouter un petit délai pour s'assurer que les données sont sauvegardées
+        setTimeout(() => {
+            window.location.href = "chat.html";
+        }, 500);
     }
+    
     saveUserData(user) {
         const userData = {
             uid: user.uid,
@@ -237,5 +295,17 @@ class AuthManager {
 
 // ici on va initialiser le gestionnaire d'auth ^-^
 document.addEventListener('DOMContentLoaded', () => {
-    new AuthManager();
+    // Nettoyer le flag de déconnexion manuelle au chargement de la page d'auth
+    // mais seulement si on est vraiment sur la page d'auth
+    const isOnAuthPage = window.location.href.includes('auth.html') || 
+                         window.location.pathname.endsWith('auth.html') ||
+                         window.location.pathname === '/';
+    
+    if (isOnAuthPage) {
+        console.log('Chargement de la page d\'authentification');
+        // Ne pas nettoyer immédiatement le flag pour permettre la déconnexion complète
+        setTimeout(() => {
+            new AuthManager();
+        }, 100);
+    }
 });
