@@ -1,0 +1,32 @@
+<div class="login-form">
+    <h1>🚀 ChatHub</h1>
+    <p class="subtitle">Rejoignez des conversations en temps réel</p>
+    
+    <input type="text" id="usernameInput" placeholder="Entrez votre pseudonyme" maxlength="20">
+    <input type="text" id="serverInput" placeholder="Adresse du serveur (localhost:3000)" value="localhost:3000">
+    
+    <div class="sound-settings">
+        <label class="sound-toggle">
+            <input type="checkbox" id="soundEnabled" checked>
+            <span>🔊 Sons de notification activés</span>
+        </label>
+    </div>
+    
+    <button id="connectBtn" class="primary-btn">Se connecter</button>
+    <div id="connectionStatus"></div>
+    
+    <div class="instructions">
+        <h3>💡 Instructions :</h3>
+        <ol>
+            <li>Assurez-vous que le serveur C est démarré</li>
+            <li>Assurez-vous que le proxy WebSocket est démarré</li>
+            <li>Entrez votre pseudonyme unique</li>
+            <li>Configurez vos préférences sonores</li>
+            <li>Cliquez sur "Se connecter"</li>
+        </ol>
+    </div>
+    <br />
+    <div class="back-to-home">
+        <a href="index.html">← Retour à la page d'accueil</a>
+    </div>
+</div>

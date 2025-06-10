@@ -1,0 +1,62 @@
+<div class="chat-header">
+    <div class="room-info">
+        <h2 id="roomTitle">Chat Room</h2>
+        <span id="roomType" class="room-type"></span>
+        <div class="room-stats">
+            <span id="onlineCount">0 en ligne</span>
+        </div>
+    </div>
+    <div class="user-info">
+        <div class="sound-control">
+            <label class="sound-toggle-chat">
+                <input type="checkbox" id="soundEnabledChat" checked>
+                <span></span>
+            </label>
+        </div>
+        <div class="user-badge">
+            <span id="currentUser"></span>
+        </div>
+        <button id="leaveRoomBtn" class="action-btn leave">
+            <i>🚪</i>
+            <span>Quitter</span>
+        </button>
+        <button id="disconnectBtn" class="action-btn disconnect">
+            <i>⚡</i>
+            <span>Déconnexion</span>
+        </button>
+    </div>
+</div>
+
+<div class="chat-container">
+    <!-- Liste des utilisateurs connectés -->
+    <div class="users-panel">
+        <div class="panel-header">
+            <h3>👥 Utilisateurs</h3>
+            <span class="user-count-badge" id="userCount">0</span>
+        </div>
+        <ul id="usersList"></ul>
+        <button id="refreshUsers" class="refresh-users-btn">
+            <i>🔄</i>
+            <span>Actualiser</span>
+        </button>
+    </div>
+
+    <!-- Zone de messages -->
+    <div class="messages-panel">
+        <div id="messagesContainer" class="messages-container"></div>
+        
+        <div class="message-input-container">
+            <div class="message-input">
+                <input type="text" id="messageInput" placeholder="Tapez votre message..." maxlength="500">
+                <button id="toggle-emoji" class="emoji-btn">😊</button>
+                <button id="sendBtn" class="send-btn">
+                    <i>📤</i>
+                </button>
+            </div>
+            <div class="typing-indicator" id="typingIndicator"></div>
+            <div id="emoji-picker-container">
+                <emoji-picker id="picker" categories='["smileys", "people", "animals", "food", "activity", "travel", "objects", "symbols", "flags"]'></emoji-picker>
+            </div>
+        </div>
+    </div>
+</div>
