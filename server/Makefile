@@ -1,18 +1,33 @@
-CC=gcc
-CFLAGS=-Wall -Wextra -std=c99
-LIBS=-lws2_32
-TARGET=server
-SOURCE=server.c
+# Makefile pour le serveur de chat modulaire
+CC = gcc
+CFLAGS = -Wall -Wextra -std=c99
+LIBS = -lws2_32
+TARGET = server
+SRCDIR = .
+OBJDIR = obj
 
-all: $(TARGET)
+# Fichiers sources
+SOURCES = server.c client_manager.c room_manager.c message_handler.c
+OBJECTS = $(SOURCES:%.c=$(OBJDIR)/%.o)
 
-$(TARGET): $(SOURCE)
-	$(CC) $(CFLAGS) -o $(TARGET).exe $(SOURCE) $(LIBS)
+# Règle principale
+$(TARGET): $(OBJECTS)
+	$(CC) $(OBJECTS) -o $(TARGET) $(LIBS)
 
+# Règle pour créer les fichiers objets
+$(OBJDIR)/%.o: $(SRCDIR)/%.c
+	@mkdir -p $(OBJDIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Règles de nettoyage
 clean:
-	if exist $(TARGET).exe del $(TARGET).exe
+	rm -rf $(OBJDIR) $(TARGET).exe
 
+rebuild: clean $(TARGET)
+
+# Règle pour exécuter le serveur
 run: $(TARGET)
-	./$(TARGET).exe
+	./$(TARGET)
 
-.PHONY: all clean run
+.PHONY: clean rebuild run
+</btml:Action>
