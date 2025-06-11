@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "client_manager.h": "c",
+        "room_manager.h": "c"
+    }
+}
