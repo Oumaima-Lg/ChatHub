@@ -1,0 +1,116 @@
+<div class="room-form">
+    <div class="room-header">
+        <h1>🏠 Choisir une salle</h1>
+        <p class="welcome-text">Bienvenue <span id="welcomeUsername"></span> !</p>
+        <div class="user-profile">
+            <div class="user-avatar" id="userAvatar"></div>
+            <div class="user-email" id="userEmail"></div>
+        </div>
+    </div>
+    
+    <!-- Salle publique -->
+    <div class="room-option public-room">
+        <div class="room-icon">🌍</div>
+        <div class="room-content">
+            <h3>Salle publique</h3>
+            <p>Rejoignez la salle de discussion générale ouverte à tous</p>
+            <button id="joinPublicBtn" class="room-btn public">
+                <span>Rejoindre la salle publique</span>
+                <i>→</i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Créer une salle privée -->
+    <div class="room-option private-room">
+        <div class="room-icon">🔐</div>
+        <div class="room-content">
+            <h3>Créer une salle privée</h3>
+            <p>Créez votre propre salle sécurisée par mot de passe</p>
+            <div class="input-group">
+                <input type="text" id="roomNameInput" placeholder="Nom de la salle" maxlength="30">
+                <input type="password" id="roomPasswordInput" placeholder="Mot de passe" maxlength="50">
+            </div>
+            <button id="createRoomBtn" class="room-btn create">
+                <span>Créer la salle</span>
+                <i>+</i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Rejoindre une salle privée -->
+    <div class="room-option join-room">
+        <div class="room-icon">🔑</div>
+        <div class="room-content">
+            <h3>Rejoindre une salle privée</h3>
+            <p>Entrez les informations d'une salle privée existante</p>
+            <div class="input-group">
+                <input type="text" id="joinRoomNameInput" placeholder="Nom de la salle" maxlength="30">
+                <input type="password" id="joinRoomPasswordInput" placeholder="Mot de passe" maxlength="50">
+            </div>
+            <button id="joinPrivateBtn" class="room-btn join">
+                <span>Rejoindre la salle</span>
+                <i>🔓</i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Liste des salles disponibles -->
+    <div class="room-option rooms-list-section">
+        <div class="room-icon">📋</div>
+        <div class="room-content">
+            <h3>Salles disponibles</h3>
+            <p>Découvrez les salles publiques actives</p>
+            <div id="roomsList" class="rooms-list">
+                <div class="loading-rooms">
+                    <div class="spinner"></div>
+                    <p>Chargement des salles...</p>
+                </div>
+            </div>
+            <button id="refreshRoomsBtn" class="room-btn refresh">
+                <span>Actualiser</span>
+                <i>🔄</i>
+            </button>
+        </div>
+    </div>
+
+    <button id="backToLoginBtn" class="back-btn">
+        <i>←</i>
+        <span>Se déconnecter</span>
+    </button>
+</div>
+
+<script>
+    // Afficher les informations de l'utilisateur Firebase
+    document.addEventListener('DOMContentLoaded', () => {
+        const userData = AuthCheck.getUserData();
+        if (userData) {
+            // Afficher l'email
+            const userEmailElement = document.getElementById('userEmail');
+            if (userEmailElement) {
+                userEmailElement.textContent = userData.email;
+            }
+            
+            // Afficher l'avatar si disponible
+            const userAvatarElement = document.getElementById('userAvatar');
+            if (userAvatarElement && userData.photoURL) {
+                userAvatarElement.style.backgroundImage = `url(${userData.photoURL})`;
+            } else if (userAvatarElement) {
+                // Avatar par défaut avec les initiales
+                const initials = userData.displayName ? userData.displayName.charAt(0).toUpperCase() : 'U';
+                userAvatarElement.textContent = initials;
+                userAvatarElement.style.backgroundColor = getRandomColor(userData.uid);
+            }
+        }
+    });
+    
+    // Fonction pour générer une couleur aléatoire mais cohérente pour un utilisateur
+    function getRandomColor(seed) {
+        let hash = 0;
+        for (let i = 0; i < seed.length; i++) {
+            hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const hue = hash % 360;
+        return `hsl(${hue}, 70%, 60%)`;
+    }
+</script>

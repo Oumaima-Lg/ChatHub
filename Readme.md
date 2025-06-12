@@ -2,8 +2,8 @@
 
 ChatHub est une application de chat moderne et complète permettant la communication en temps réel avec support des salles publiques et privées. Le projet comprend un serveur C robuste et une interface web responsive.
 
-![alt text](image-6.png)
-![alt text](image-2.png)
+![alt text](image-8.png)
+![alt text](image-9.png)
 ![alt text](image-3.png)
 ![alt text](image-4.png)
 ![alt text](image-5.png)
@@ -123,14 +123,35 @@ cd chat-application
 
 ### Compiler le serveur C
 
-cd server
-gcc -Wall -Wextra -std=c99 -o server.exe server.c -lws2_32
-
-ou 
-gcc server.c -o server -lws2_32
-
-Ou avec Make :
+### Avec Makefile (recommandé)
+```bash
+# Compiler le projet
 make
+
+# Nettoyer les fichiers objets
+make clean
+
+# Recompiler complètement
+make rebuild
+
+# Compiler et exécuter
+make run
+```
+
+### Compilation manuelle
+```bash
+# Créer le dossier obj
+mkdir obj
+
+# Compiler les fichiers objets
+gcc -Wall -Wextra -std=c99 -c server.c -o obj/server.o
+gcc -Wall -Wextra -std=c99 -c client_manager.c -o obj/client_manager.o
+gcc -Wall -Wextra -std=c99 -c room_manager.c -o obj/room_manager.o
+gcc -Wall -Wextra -std=c99 -c message_handler.c -o obj/message_handler.o
+
+# Lier les fichiers objets
+gcc obj/server.o obj/client_manager.o obj/room_manager.o obj/message_handler.o -o server -lws2_32
+```
 
 
 ### 3. Installer les dépendances du proxy WebSocket
@@ -144,8 +165,12 @@ npm install
 ### 1. Démarrer le serveur C
 
 cd server
+./server 
+
+ou
 ./server.exe
 
+Le serveur démarre sur le port 8080 par défaut.
 
 ### 2. Démarrer le proxy WebSocket
 
@@ -200,7 +225,39 @@ Puis accédez à `http://localhost:8000` dans votre navigateur.
 
 ## Structure du projet
 
-![alt text](image-1.png)
+![alt text](image-7.png)
+
+<!-- client/
+├── index.html                 (page d'accueil avec liens vers auth.html)
+├── auth.html                  (page d'authentification Firebase)
+├── auth.js                    (logique d'authentification Firebase)
+├── auth.css                   (styles pour la page d'authentification)
+├── chat.html                  (application de chat modulaire)
+├── chat.css                   (styles pour l'application de chat)
+├── home.css                   (styles pour la page d'accueil)
+├── components/
+│   ├── room-selection.html   (sélection de salle)
+│   └── chat-interface.html   (interface de chat)
+└── js/
+    ├── auth-check.js         (vérification de l'authentification)
+    ├── main.js              (classe principale ChatClient)
+    ├── connection.js        (gestion des connexions WebSocket)
+    ├── room-management.js   (gestion des salles)
+    ├── message-handling.js  (gestion des messages)
+    ├── emoji-handler.js     (gestion des emojis)
+    └── ui-utils.js         (utilitaires interface)
+
+server/
+├── server.h              # Fichier d'en-tête principal avec les définitions communes
+├── server.c              # Fichier principal avec main() et fonctions de base
+├── client_manager.h      # En-tête pour la gestion des clients
+├── client_manager.c      # Fonctions de gestion des clients
+├── room_manager.h        # En-tête pour la gestion des salles
+├── room_manager.c        # Fonctions de gestion des salles
+├── message_handler.h     # En-tête pour la gestion des messages
+├── message_handler.c     # Traitement des messages et thread client
+├── Makefile             # Fichier de compilation -->
+
 
 ## Fonctionnement technique
 
@@ -213,6 +270,45 @@ L'application utilise une architecture client-serveur avec trois composants prin
 3. **Client Web** : Interface utilisateur en HTML/CSS/JavaScript qui se connecte au proxy WebSocket
 
 
+## Modules
+
+### 1. server.h / server.c
+- **Rôle** : Fichier principal contenant la fonction `main()` et les fonctions de base du serveur
+- **Contient** :
+  - Variables globales (clients, rooms, mutexes)
+  - Fonction `main()` avec la boucle d'acceptation des connexions
+  - Fonctions `cleanup_server()` et `console_handler()`
+  - Initialisation du serveur et gestion des connexions
+
+### 2. client_manager.h / client_manager.c
+- **Rôle** : Gestion des clients connectés
+- **Contient** :
+  - `add_client()` : Ajouter un client à la liste
+  - `remove_client()` : Supprimer un client de la liste
+  - `broadcast_message()` : Diffuser un message à tous les clients
+  - `send_client_list()` : Envoyer la liste des clients connectés
+
+### 3. room_manager.h / room_manager.c
+- **Rôle** : Gestion des salles de chat
+- **Contient** :
+  - `init_rooms()` : Initialiser les salles (créer la salle "general")
+  - `find_room_by_name()` : Trouver une salle par son nom
+  - `create_room()` : Créer une nouvelle salle
+  - `join_room()` : Faire rejoindre un client à une salle
+  - `leave_room()` : Faire quitter un client d'une salle
+  - `broadcast_to_room()` : Diffuser un message dans une salle
+  - `send_room_list()` : Envoyer la liste des salles
+  - `send_room_users()` : Envoyer la liste des utilisateurs d'une salle
+  - `send_room_message()` : Envoyer un message formaté dans une salle
+  - `handle_leave_room()` : Gérer la sortie d'une salle
+
+### 4. message_handler.h / message_handler.c
+- **Rôle** : Traitement des messages et gestion des threads clients
+- **Contient** :
+  - `handle_client()` : Thread principal pour gérer chaque client
+  - Traitement de tous les types de messages (LIST, ROOMS, CREATE_ROOM, JOIN_ROOM, etc.)
+  - Logique de communication avec les clients
+  
 
 ## 🔌 API et Protocoles
 
@@ -287,3 +383,13 @@ OIO
 ---
 
 **ChatHub** - Connecter les gens, une conversation à la fois. 💬✨
+
+
+
+
+
+
+
+
+
+

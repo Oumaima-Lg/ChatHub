@@ -5,189 +5,63 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChatHub - Salles de Discussion</title>
     <link rel="stylesheet" href="chat.css">
+    <!-- la bib des emojis -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1.6.2/index.js"></script>
+    <!-- Firebase SDK -->
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
 </head>
 <body>
     <div class="container">
-        <!-- Écran de connexion -->
-        <div id="loginScreen" class="screen">
-            <div class="login-form">
-                <h1>🚀 ChatHub</h1>
-                <p class="subtitle">Rejoignez des conversations en temps réel</p>
-                
-                <input type="text" id="usernameInput" placeholder="Entrez votre pseudonyme" maxlength="20">
-                <input type="text" id="serverInput" placeholder="Adresse du serveur (localhost:3000)" value="localhost:3000">
-                
-                <div class="sound-settings">
-                    <label class="sound-toggle">
-                        <input type="checkbox" id="soundEnabled" checked>
-                        <span>🔊 Sons de notification activés</span>
-                    </label>
-                </div>
-                
-                <button id="connectBtn" class="primary-btn">Se connecter</button>
-                <div id="connectionStatus"></div>
-                
-                <div class="instructions">
-                    <h3>💡 Instructions :</h3>
-                    <ol>
-                        <li>Assurez-vous que le serveur C est démarré</li>
-                        <li>Assurez-vous que le proxy WebSocket est démarré</li>
-                        <li>Entrez votre pseudonyme unique</li>
-                        <li>Configurez vos préférences sonores</li>
-                        <li>Cliquez sur "Se connecter"</li>
-                    </ol>
-                </div>
-                <br />
-                <div class="back-to-home">
-                    <a href="index.html">← Retour à la page d'accueil</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Écran de sélection de salle -->
+        <!-- Écrans de l'application -->
         <div id="roomScreen" class="screen hidden">
-            <div class="room-form">
-                <div class="room-header">
-                    <h1>🏠 Choisir une salle</h1>
-                    <p class="welcome-text">Bienvenue <span id="welcomeUsername"></span> !</p>
-                </div>
-                
-                <!-- Salle publique -->
-                <div class="room-option public-room">
-                    <div class="room-icon">🌍</div>
-                    <div class="room-content">
-                        <h3>Salle publique</h3>
-                        <p>Rejoignez la salle de discussion générale ouverte à tous</p>
-                        <button id="joinPublicBtn" class="room-btn public">
-                            <span>Rejoindre la salle publique</span>
-                            <i>→</i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Créer une salle privée -->
-                <div class="room-option private-room">
-                    <div class="room-icon">🔐</div>
-                    <div class="room-content">
-                        <h3>Créer une salle privée</h3>
-                        <p>Créez votre propre salle sécurisée par mot de passe</p>
-                        <div class="input-group">
-                            <input type="text" id="roomNameInput" placeholder="Nom de la salle" maxlength="30">
-                            <input type="password" id="roomPasswordInput" placeholder="Mot de passe" maxlength="50">
-                        </div>
-                        <button id="createRoomBtn" class="room-btn create">
-                            <span>Créer la salle</span>
-                            <i>+</i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Rejoindre une salle privée -->
-                <div class="room-option join-room">
-                    <div class="room-icon">🔑</div>
-                    <div class="room-content">
-                        <h3>Rejoindre une salle privée</h3>
-                        <p>Entrez les informations d'une salle privée existante</p>
-                        <div class="input-group">
-                            <input type="text" id="joinRoomNameInput" placeholder="Nom de la salle" maxlength="30">
-                            <input type="password" id="joinRoomPasswordInput" placeholder="Mot de passe" maxlength="50">
-                        </div>
-                        <button id="joinPrivateBtn" class="room-btn join">
-                            <span>Rejoindre la salle</span>
-                            <i>🔓</i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Liste des salles disponibles -->
-                <div class="room-option rooms-list-section">
-                    <div class="room-icon">📋</div>
-                    <div class="room-content">
-                        <h3>Salles disponibles</h3>
-                        <p>Découvrez les salles publiques actives</p>
-                        <div id="roomsList" class="rooms-list">
-                            <div class="loading-rooms">
-                                <div class="spinner"></div>
-                                <p>Chargement des salles...</p>
-                            </div>
-                        </div>
-                        <button id="refreshRoomsBtn" class="room-btn refresh">
-                            <span>Actualiser</span>
-                            <i>🔄</i>
-                        </button>
-                    </div>
-                </div>
-
-                <button id="backToLoginBtn" class="back-btn">
-                    <i>←</i>
-                    <span>Retour à la connexion</span>
-                </button>
-            </div>
+            <!-- Contenu sera chargé depuis room-selection.html -->
         </div>
 
-        <!-- Interface de chat -->
         <div id="chatScreen" class="screen hidden">
-            <div class="chat-header">
-                <div class="room-info">
-                    <h2 id="roomTitle">Chat Room</h2>
-                    <span id="roomType" class="room-type"></span>
-                    <div class="room-stats">
-                        <span id="onlineCount">0 en ligne</span>
-                    </div>
-                </div>
-                <div class="user-info">
-                    <div class="sound-control">
-                        <label class="sound-toggle-chat">
-                            <input type="checkbox" id="soundEnabledChat" checked>
-                            <span></span>
-                        </label>
-                    </div>
-                    <div class="user-badge">
-                        <span id="currentUser"></span>
-                    </div>
-                    <button id="leaveRoomBtn" class="action-btn leave">
-                        <i>🚪</i>
-                        <span>Quitter</span>
-                    </button>
-                    <button id="disconnectBtn" class="action-btn disconnect">
-                        <i>⚡</i>
-                        <span>Déconnexion</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="chat-container">
-                <!-- Liste des utilisateurs connectés -->
-                <div class="users-panel">
-                    <div class="panel-header">
-                        <h3>👥 Utilisateurs</h3>
-                        <span class="user-count-badge" id="userCount">0</span>
-                    </div>
-                    <ul id="usersList"></ul>
-                    <button id="refreshUsers" class="refresh-users-btn">
-                        <i>🔄</i>
-                        <span>Actualiser</span>
-                    </button>
-                </div>
-
-                <!-- Zone de messages -->
-                <div class="messages-panel">
-                    <div id="messagesContainer" class="messages-container"></div>
-                    
-                    <div class="message-input-container">
-                        <div class="message-input">
-                            <input type="text" id="messageInput" placeholder="Tapez votre message..." maxlength="500">
-                            <button id="sendBtn" class="send-btn">
-                                <i>📤</i>
-                            </button>
-                        </div>
-                        <div class="typing-indicator" id="typingIndicator"></div>
-                    </div>
-                </div>
-            </div>
+            <!-- Contenu sera chargé depuis chat-interface.html -->
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Scripts externes -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js"></script>
+    
+    <!-- Nos modules JavaScript -->
+    <script src="js/auth-check.js"></script>
+    <script src="js/ui-utils.js"></script>
+    <script src="js/connection.js"></script>
+    <script src="js/room-management.js"></script>
+    <script src="js/message-handling.js"></script>
+    <script src="js/emoji-handler.js"></script>
+    <script src="js/main.js"></script>
+    
+    <script>
+        // Vérifier l'authentification avant de charger le contenu
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Vérifier si l'utilisateur est connecté
+            const userData = sessionStorage.getItem('chatHubUser');
+            if (!userData) {
+                // Rediriger vers la page d'authentification si non connecté
+                window.location.href = 'auth.html';
+                return;
+            }
+            
+            await loadHTMLContent();
+            chatClient = new ChatClient();
+        });
+
+        async function loadHTMLContent() {
+            try {
+                const roomResponse = await fetch('components/room-selection.html');
+                const chatResponse = await fetch('components/chat-interface.html');
+                
+                document.getElementById('roomScreen').innerHTML = await roomResponse.text();
+                document.getElementById('chatScreen').innerHTML = await chatResponse.text();
+            } catch (error) {
+                console.error('Erreur lors du chargement des composants:', error);
+            }
+        }
+    </script>
 </body>
 </html>
